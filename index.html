@@ -7,7 +7,7 @@
   <!-- Tailwind CSS & FontAwesome -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- SheetJS Library untuk bacaan fail Excel (.xlsx) di sisi klien -->
+  <!-- SheetJS Library untuk bacaan fail Excel (.xlsx) -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -39,7 +39,7 @@
           <i class="fa-solid fa-chart-pie mr-1"></i> Dashboard
         </button>
         <button onclick="switchPage('rumusan')" id="tab-rumusan" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-slate-600 hover:text-blue-900">
-          <i class="fa-solid fa-chart-column mr-1"></i> Rumusan
+          <i class="fa-solid fa-chart-column mr-1"></i> Rumusan & Statistik
         </button>
         <button onclick="switchPage('admin')" id="tab-admin" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-rose-700 hover:bg-rose-50">
           <i class="fa-solid fa-user-shield mr-1"></i> Admin
@@ -189,38 +189,96 @@
       </div>
     </section>
 
-    <!-- ==================== PAGE 3: RUMUSAN & ANALISIS ==================== -->
+    <!-- ==================== PAGE 3: RUMUSAN & STATISTIK (DIKEMASKINI) ==================== -->
     <section id="page-rumusan" class="hidden space-y-6">
       <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
         <div class="flex flex-wrap justify-between items-center gap-4">
           <div>
             <h3 class="font-bold text-lg text-slate-800">Penapis Rumusan & Statistik Kehadiran</h3>
-            <p class="text-xs text-slate-500">Pilih sela masa untuk menjana statistik terperinci murid.</p>
+            <p class="text-xs text-slate-500">Pilih sela masa atau pilih tarikh spesifik untuk melihat statistik ketidakhadiran.</p>
           </div>
-          <div class="flex bg-slate-100 p-1 rounded-xl">
-            <button onclick="setTimeRange('day')" id="filter-day" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow-xs text-blue-900">Hari Ini</button>
-            <button onclick="setTimeRange('week')" id="filter-week" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600">Minggu Ini</button>
-            <button onclick="setTimeRange('month')" id="filter-month" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600">Bulan Ini</button>
-            <button onclick="setTimeRange('year')" id="filter-year" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600">Tahun 2027</button>
+
+          <!-- Pilihan Sela Masa & Butang Tambahan: Semalam & Kalendar Pilihan Tarikh -->
+          <div class="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-xl">
+            <button onclick="setTimeRange('yesterday')" id="filter-yesterday" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
+              <i class="fa-solid fa-clock-rotate-left mr-1"></i> Semalam
+            </button>
+            <button onclick="setTimeRange('day')" id="filter-day" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-white shadow-xs text-blue-900 transition">
+              Hari Ini
+            </button>
+            <button onclick="setTimeRange('week')" id="filter-week" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
+              Minggu Ini
+            </button>
+            <button onclick="setTimeRange('month')" id="filter-month" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
+              Bulan Ini
+            </button>
+            <button onclick="setTimeRange('year')" id="filter-year" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
+              Tahun 2027
+            </button>
+            <!-- Pilihan Tarikh Kalendar Terus -->
+            <div class="flex items-center pl-2 border-l border-slate-300 gap-1">
+              <label for="filterCustomDate" class="text-[11px] font-bold text-slate-500 uppercase">Tarikh Pilihan:</label>
+              <input type="date" id="filterCustomDate" onchange="onCustomDateChange()" class="bg-white border border-slate-300 text-xs font-semibold rounded-lg px-2 py-1 text-slate-700 outline-none focus:ring-1 focus:ring-blue-600 cursor-pointer">
+            </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+        <!-- Kad Indikator Rumusan -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
+          <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
+            <p class="text-xs font-bold text-amber-700">Tidak Hadir Semalam</p>
+            <p class="text-3xl font-black text-amber-800 mt-1" id="statYesterdayAbsent">0</p>
+            <p class="text-[11px] text-amber-600 mt-0.5" id="statYesterdayDateText">--</p>
+          </div>
           <div class="bg-rose-50 border border-rose-200 p-4 rounded-xl">
-            <p class="text-xs font-bold text-rose-700">Jumlah Murid Tidak Hadir</p>
+            <p class="text-xs font-bold text-rose-700">Jumlah Tidak Hadir (Sela Terpilih)</p>
             <p class="text-3xl font-black text-rose-800 mt-1" id="statTotalAbsent">0</p>
+            <p class="text-[11px] text-rose-600 mt-0.5" id="statSelectedRangeText">Hari Ini</p>
           </div>
           <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl">
-            <p class="text-xs font-bold text-blue-700">Purata Kehadiran Keseluruhan</p>
+            <p class="text-xs font-bold text-blue-700">Purata Kehadiran</p>
             <p class="text-3xl font-black text-blue-900 mt-1" id="statAvgAttendance">0%</p>
+            <p class="text-[11px] text-blue-600 mt-0.5">Berdasarkan data kelas direkod</p>
           </div>
           <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
-            <p class="text-xs font-bold text-emerald-700">Bilangan Murid 100% Hadir (Sangat Rajin)</p>
+            <p class="text-xs font-bold text-emerald-700">Murid 100% Hadir (Sangat Rajin)</p>
             <p class="text-3xl font-black text-emerald-800 mt-1" id="statSuperDiligentCount">0</p>
+            <p class="text-[11px] text-emerald-600 mt-0.5">Tiada sebarang rekod ponteng</p>
           </div>
         </div>
       </div>
 
+      <!-- BAHAGIAN KHAS: SENARAI KETIDAKHADIRAN SEMALAM -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-amber-50/40 flex flex-wrap justify-between items-center gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm">
+              <i class="fa-solid fa-calendar-day"></i>
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-800 text-sm">Senarai Ketidakhadiran Semalam (<span id="yesterdayDisplayLabel">--</span>)</h4>
+              <p class="text-xs text-slate-500">Rekod lengkap murid tidak hadir pada hari sebelumnya mengikut kelas.</p>
+            </div>
+          </div>
+          <span class="bg-amber-200/70 text-amber-900 font-extrabold text-xs px-3 py-1 rounded-full" id="yesterdayTotalBadge">0 Murid Tidak Hadir</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-b border-slate-200">
+              <tr>
+                <th class="py-2.5 px-6">Kelas</th>
+                <th class="py-2.5 px-6">Nama Murid</th>
+                <th class="py-2.5 px-6">Sebab Tidak Hadir</th>
+              </tr>
+            </thead>
+            <tbody id="tableYesterdayAbsent" class="divide-y divide-slate-100">
+              <tr><td colspan="3" class="text-center py-4 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran semalam.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KEKERAPAN TIDAK HADIR & RAJIN HADIR -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div class="px-5 py-4 border-b border-slate-200 bg-rose-50/50 flex justify-between items-center">
@@ -229,7 +287,7 @@
             </h4>
             <span class="text-xs bg-rose-200/60 text-rose-800 font-bold px-2.5 py-0.5 rounded-full" id="countFrequentAbsent">0 Murid</span>
           </div>
-          <div class="p-4 flex-1 overflow-y-auto max-h-[380px]" id="listFrequentAbsent">
+          <div class="p-4 flex-1 overflow-y-auto max-h-[360px]" id="listFrequentAbsent">
           </div>
         </div>
 
@@ -240,14 +298,18 @@
             </h4>
             <span class="text-xs bg-emerald-200/60 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full" id="countDiligent">0 Murid</span>
           </div>
-          <div class="p-4 flex-1 overflow-y-auto max-h-[380px]" id="listDiligentStudents">
+          <div class="p-4 flex-1 overflow-y-auto max-h-[360px]" id="listDiligentStudents">
           </div>
         </div>
       </div>
 
+      <!-- SENARAI TIDAK HADIR MENGIKUT KELAS (SELA TERPILIH) -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-200">
-          <h4 class="font-bold text-slate-800 text-base">Senarai Penuh Murid Tidak Hadir Mengikut Kelas (Sela Masa Terpilih)</h4>
+        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+          <div>
+            <h4 class="font-bold text-slate-800 text-base">Senarai Penuh Murid Tidak Hadir (Sela Masa Terpilih)</h4>
+            <p class="text-xs text-slate-500" id="subtextSelectedRange">Memaparkan rekod mengikut penapis semasa.</p>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
@@ -268,7 +330,6 @@
 
     <!-- ==================== PAGE 4: ADMIN KEMASKINI MURID ==================== -->
     <section id="page-admin" class="hidden space-y-6">
-      <!-- Admin Login Box -->
       <div id="adminAuthBox" class="max-w-md mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <div class="text-center space-y-2">
           <div class="w-14 h-14 bg-rose-100 text-rose-700 rounded-2xl flex items-center justify-center mx-auto text-2xl">
@@ -286,7 +347,6 @@
         </button>
       </div>
 
-      <!-- Admin Management Panel (Muncul selepas login berjaya) -->
       <div id="adminPanelBox" class="hidden space-y-6">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
           <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-4">
@@ -294,7 +354,7 @@
               <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
                 <i class="fa-solid fa-file-excel text-emerald-600"></i> Muat Naik Fail Excel APDM (.xlsx / .xls)
               </h3>
-              <p class="text-xs text-slate-500">Format sheet mestilah mengandungi nama kelas (contoh: 1S1, 1S2, 2S1 hingga 5S3) dengan lajur Nama Murid.</p>
+              <p class="text-xs text-slate-500">Format sheet mestilah mengandungi nama kelas (1S1 hingga 5S3) dengan lajur Nama Murid.</p>
             </div>
             <button onclick="adminLogout()" class="text-xs text-rose-600 font-bold hover:underline">
               <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Log Keluar Admin
@@ -312,7 +372,6 @@
             <p class="text-xs text-slate-400 font-medium" id="uploadFileName">Belum ada fail dipilih</p>
           </div>
 
-          <!-- Preview Ekstrak Data -->
           <div id="adminPreviewArea" class="hidden space-y-4 pt-2">
             <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
               <div>
@@ -340,12 +399,10 @@
     &copy; 2027 SMK Kamarul Ariffin (JEA7039). Dikuasakan oleh GitHub Pages & Google Cloud API.
   </footer>
 
-  <!-- ==================== LOGIK UTAMA JAVASCRIPT ==================== -->
+  <!-- ==================== JAVASCRIPT ==================== -->
   <script>
-    // URL GOOGLE APPS SCRIPT ANDA
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxiYuqTUzYJCe-FNClmZ4gKjq2GSMXKsxmD6mZ_df2G0gTKNPR-JhOjlDWl8oMPI7hy/exec";
 
-    // DATA DEFAULT AWAL DARI APDM JEA7039
     let STUDENTS_DATA = {
       "1S1": ["AISSY NAUFAL BIN ROSISKANDAR","AISY FATIH AMIRULLAH BIN AZMAN","DAMIA AMANI BINTI MOHD SUKRI @ MOHD SALLEH","FAIZ FAHRYZAL BIN MOHD HANIF","HOONG WAN WAN","JETHRO TAN HAO SHEN","LIM QI QUAN","LISA BINTI ROSLI","MICHELLE TAN MEI SEE","MUHAMMAD AARON EQUWAN BIN MOHD ISA","MUHAMMAD ADAM HARITH BIN MOHD FAUZI","MUHAMMAD ADHAM RAYYAN BIN MUHAMAD KHAIRUL","MUHAMMAD DANISH RIFQI BIN MOHD REDZUAN","MUHAMMAD FAZREEQ BIN MOHD FAZLY","MUHAMMAD HAKIMI BIN JAMALUDDIN","MUHAMMAD RAYYAN HAKIMY BIN SAMSUDIN","MUHAMMAD SYAQIL HARRAZ BIN MOHD HAFIZAN","NUR AINA DAMIA BINTI MUHAMMAD NUR ARIFFIN","NUR ALEESYA BALQIS BINTI MOHD YUSOF","NUR AMALIN AISYAH BINTI NOR ISKANDAR","NUR BALQIS BINTI SAIFUL BAHRI"],
       "1S2": ["ANIKET ROY A/L BIJOY ROY","AQIL SUFIAN BIN SULAIMAN","FAITH BINTI YUSOP","FARAH AZYANI BINTI ASMAN","KHAIRUL ALIF BIN RAZAK","LUQMAN HAKIM BIN SAID","MOHAMAD AMIRUL ASYRAF BIN MOHAMMAD FAZLI","MOHAMAD DANIAL HAIKAL BIN ROZAIDI","MUHAMMAD AFIQ DARWISY BIN ABDULLAH","MUHAMMAD AIDIL ASRAF BIN AHMAD","MUHAMMAD AMMAR SHAH BIN SHAHRIZAL","MUHAMMAD ASYRAF BIN ZAINAL","MUHAMMAD DHIA'UDDIN NAUFAL BIN MUHAMMAD HAFIZ","MUHAMMAD DINIE SYAZWAN BIN SHAMSUL ARIFFIN","MUHAMMAD FIRDAUS BIN YUSRI","MUHAMMAD NUR HAZIQ RAYYAN BIN RAIMI","NUR ALYA SHAZWANI BINTI ABDULLAH","NUR DAMIA QISTINA BINTI MOHAMMAD FARIQ","NUR FATIHAH BINTI ABDULLAH","NUR HAZIQAH BINTI RAZALI","NURUL FATIHAH BINTI MOHD RAZIF","PUTERA DANIAL ZAKWAN BIN KASMIDON","PUTERI NUR SHAHIRAH BINTI SHAH REZAL"],
@@ -363,6 +420,7 @@
 
     let attendanceRecords = [];
     let activeRange = 'day';
+    let customSelectedDate = '';
     let extractedAdminData = null;
 
     window.onload = function() {
@@ -380,7 +438,10 @@
     }
 
     function initDefaultDate() {
-      document.getElementById('inputTarikh').value = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('inputTarikh').value = today;
+      document.getElementById('filterCustomDate').value = today;
+      customSelectedDate = today;
     }
 
     function loadLocalOrRemoteStudents() {
@@ -474,7 +535,6 @@
       renderStudentList();
     }
 
-    // SIMPAN KEHADIRAN (POST)
     async function saveAttendance() {
       const btn = document.getElementById('btnSave');
       const cls = document.getElementById('selectKelas').value;
@@ -510,7 +570,7 @@
           body: JSON.stringify(payload)
         });
         
-        alert(`Kehadiran Kelas ${cls} bagi ${tarikh} telah dihantar ke Google Sheets!`);
+        alert(`Kehadiran Kelas ${cls} (${tarikh}) berjaya dihantar ke Google Sheets!`);
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Kehadiran (Google Sheets)`;
         setTimeout(loadRemoteData, 1500);
@@ -522,7 +582,6 @@
       }
     }
 
-    // MUAT TURUN DATA DARI GOOGLE APPS SCRIPT
     async function loadRemoteData() {
       try {
         const res = await fetch(GAS_API_URL);
@@ -537,13 +596,13 @@
         if (Array.isArray(data.attendance)) {
           attendanceRecords = data.attendance;
           renderDashboard();
+          renderRumusan();
         }
       } catch (e) {
-        console.warn("Gagal mendapatkan data API, menggunakan rekod cache:", e);
+        console.warn("Gagal menghubungi Google Apps Script API:", e);
       }
     }
 
-    // DASHBOARD LOGIC
     function renderDashboard() {
       const today = document.getElementById('inputTarikh').value || new Date().toISOString().split('T')[0];
       const tbody = document.getElementById('dashTableBody');
@@ -634,11 +693,22 @@
       switchPage('pelaporan');
     }
 
-    // RUMUSAN & STATISTIK
+    // =========================================================================
+    // LOGIK RUMUSAN & STATISTIK (DITAMBAH: SEMALAM & PILIHAN TARIKH)
+    // =========================================================================
+    
+    // Fungsi pembantu tarikh semalam (YYYY-MM-DD)
+    function getYesterdayDateStr(refDateStr) {
+      const base = refDateStr ? new Date(refDateStr) : new Date();
+      base.setDate(base.getDate() - 1);
+      return base.toISOString().split('T')[0];
+    }
+
     function setTimeRange(range) {
       activeRange = range;
-      ['day', 'week', 'month', 'year'].forEach(r => {
+      ['yesterday', 'day', 'week', 'month', 'year'].forEach(r => {
         const btn = document.getElementById(`filter-${r}`);
+        if (!btn) return;
         if (r === range) {
           btn.classList.add('bg-white', 'shadow-xs', 'text-blue-900');
           btn.classList.remove('text-slate-600');
@@ -650,22 +720,106 @@
       renderRumusan();
     }
 
+    function onCustomDateChange() {
+      const val = document.getElementById('filterCustomDate').value;
+      if (val) {
+        customSelectedDate = val;
+        activeRange = 'custom';
+        // Reset warna butang lain
+        ['yesterday', 'day', 'week', 'month', 'year'].forEach(r => {
+          const btn = document.getElementById(`filter-${r}`);
+          if (btn) {
+            btn.classList.remove('bg-white', 'shadow-xs', 'text-blue-900');
+            btn.classList.add('text-slate-600');
+          }
+        });
+        renderRumusan();
+      }
+    }
+
     function renderRumusan() {
-      const selectedDate = document.getElementById('inputTarikh').value || new Date().toISOString().split('T')[0];
-      const targetDate = new Date(selectedDate);
+      const inputDate = document.getElementById('inputTarikh').value || new Date().toISOString().split('T')[0];
+      const yesterdayStr = getYesterdayDateStr(inputDate);
+      
+      // Papar label tarikh semalam
+      document.getElementById('statYesterdayDateText').innerText = `Tarikh: ${yesterdayStr}`;
+      document.getElementById('yesterdayDisplayLabel').innerText = yesterdayStr;
+
+      // 1. KIRA & PAPAR KETIDAKHADIRAN SEMALAM
+      const yesterdayRecords = attendanceRecords.filter(r => r.tarikh === yesterdayStr);
+      let yesterdayAbsentCount = 0;
+      const yesterdayAbsenteesList = [];
+
+      yesterdayRecords.forEach(rec => {
+        if (rec.absentees && Array.isArray(rec.absentees)) {
+          rec.absentees.forEach(a => {
+            yesterdayAbsentCount++;
+            yesterdayAbsenteesList.push({
+              kelas: rec.kelas,
+              nama: a.nama,
+              sebab: a.sebab
+            });
+          });
+        }
+      });
+
+      document.getElementById('statYesterdayAbsent').innerText = yesterdayAbsentCount;
+      document.getElementById('yesterdayTotalBadge').innerText = `${yesterdayAbsentCount} Murid Tidak Hadir`;
+
+      const tbodyYesterday = document.getElementById('tableYesterdayAbsent');
+      tbodyYesterday.innerHTML = '';
+      if (yesterdayAbsenteesList.length === 0) {
+        tbodyYesterday.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran direkodkan pada hari semalam (${yesterdayStr}).</td></tr>`;
+      } else {
+        yesterdayAbsenteesList.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+            <td class="py-2.5 px-6 font-bold text-slate-800 text-xs">${item.kelas}</td>
+            <td class="py-2.5 px-6 font-semibold text-slate-700 text-xs">${item.nama}</td>
+            <td class="py-2.5 px-6">
+              <span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded text-xs font-medium">
+                ${item.sebab}
+              </span>
+            </td>
+          `;
+          tbodyYesterday.appendChild(tr);
+        });
+      }
+
+      // 2. PENAPIS SELA MASA UTAMA (TERMASUK SEMALAM & TARIKH PILIHAN)
+      let rangeLabel = "Hari Ini";
+      const targetDate = new Date(inputDate);
 
       const filtered = attendanceRecords.filter(r => {
         const d = new Date(r.tarikh);
-        if (activeRange === 'day') return r.tarikh === selectedDate;
-        if (activeRange === 'week') {
+        if (activeRange === 'yesterday') {
+          rangeLabel = `Semalam (${yesterdayStr})`;
+          return r.tarikh === yesterdayStr;
+        } else if (activeRange === 'day') {
+          rangeLabel = `Hari Ini (${inputDate})`;
+          return r.tarikh === inputDate;
+        } else if (activeRange === 'custom') {
+          rangeLabel = `Tarikh Pilihan (${customSelectedDate})`;
+          return r.tarikh === customSelectedDate;
+        } else if (activeRange === 'week') {
+          rangeLabel = `7 Hari Terakhir`;
           const diffDays = (targetDate - d) / (1000 * 3600 * 24);
           return diffDays >= 0 && diffDays <= 7;
+        } else if (activeRange === 'month') {
+          rangeLabel = `Bulan Ini`;
+          return d.getMonth() === targetDate.getMonth() && d.getFullYear() === targetDate.getFullYear();
+        } else if (activeRange === 'year') {
+          rangeLabel = `Tahun 2027`;
+          return d.getFullYear() === targetDate.getFullYear();
         }
-        if (activeRange === 'month') return d.getMonth() === targetDate.getMonth() && d.getFullYear() === targetDate.getFullYear();
-        if (activeRange === 'year') return d.getFullYear() === targetDate.getFullYear();
         return true;
       });
 
+      document.getElementById('statSelectedRangeText').innerText = rangeLabel;
+      document.getElementById('subtextSelectedRange').innerText = `Menunjukkan senarai murid tidak hadir untuk sela masa: ${rangeLabel}`;
+
+      // Kira Statistik Sela Terpilih
       let totalAbsentCount = 0;
       let totalHadirSum = 0;
       let totalEnrolSum = 0;
@@ -753,12 +907,12 @@
       document.getElementById('statSuperDiligentCount').innerText = diligentCount;
       document.getElementById('countDiligent').innerText = `${diligentCount} Murid`;
 
-      // Senarai Penuh Murid Tidak Hadir
+      // Jadual Penuh Sela Terpilih
       const detailTbody = document.getElementById('tableAbsentByClass');
       detailTbody.innerHTML = '';
 
       if (studentAllAbsences.length === 0) {
-        detailTbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran direkodkan.</td></tr>`;
+        detailTbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran bagi sela masa ini.</td></tr>`;
       } else {
         studentAllAbsences.forEach(row => {
           const tr = document.createElement('tr');
@@ -778,7 +932,7 @@
       }
     }
 
-    // ==================== LOGIK ADMIN & IMPORT EXCEL ====================
+    // ADMIN LOGIC
     function verifyAdminPassword() {
       const pwd = document.getElementById('adminPasswordInput').value;
       if (pwd === "adminhadir") {
@@ -798,7 +952,6 @@
       extractedAdminData = null;
     }
 
-    // Baca Fail Excel Menggunakan SheetJS
     function handleExcelUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -816,23 +969,18 @@
 
           workbook.SheetNames.forEach(sheetName => {
             const sheet = workbook.Sheets[sheetName];
-            // Format sheet nama kelas: 1S1, 1S2, 2S1, ..., 5S3
             const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
             const studentList = [];
 
-            // Cari lajur nama (lazimnya lajur ke-4 / indeks 3 dalam APDM)
             for (let r = 0; r < rows.length; r++) {
               const row = rows[r];
               if (!row || row.length < 2) continue;
 
-              // Semak jika baris mengandungi nombor bilangan & nama murid
               for (let colIdx = 0; colIdx < row.length; colIdx++) {
                 const val = row[colIdx];
                 if (typeof val === 'string' && val.length > 3) {
-                  // Pastikan bukan tajuk header
                   const upper = val.toUpperCase();
                   if (!upper.includes("NAMA") && !upper.includes("SEKOLAH") && !upper.includes("KAD PENGENALAN") && !upper.includes("JANTINA") && !upper.includes("ISLAM") && !upper.includes("MELAYU") && isNaN(upper)) {
-                    // Semak jika bersebelahan dengan nombor bil
                     const prevVal = row[colIdx - 1];
                     if (prevVal !== undefined && !isNaN(prevVal) && prevVal !== "") {
                       studentList.push(val.trim());
@@ -843,7 +991,6 @@
               }
             }
 
-            // Jika sheet mengandungi murid, simpan
             if (studentList.length > 0 && !sheetName.includes("SEMUA") && !sheetName.includes("JUMLAH") && !sheetName.includes("GURU") && !sheetName.includes("AGAMA")) {
               newStudentsData[sheetName.trim()] = studentList;
               totalExtracted += studentList.length;
@@ -854,11 +1001,11 @@
             extractedAdminData = newStudentsData;
             showAdminPreview(newStudentsData, totalExtracted);
           } else {
-            alert("Tiada data murid dikesan. Sila pastikan format lembaran kerja mempunyai nama kelas seperti 1S1, 1S2, dll.");
+            alert("Tiada data murid dikesan. Sila pastikan format sheet mengandungi nama kelas (1S1, 1S2, dsb).");
           }
 
         } catch (err) {
-          alert("Gagal memproses fail Excel: " + err.message);
+          alert("Gagal membaca fail Excel: " + err.message);
         }
       };
       reader.readAsArrayBuffer(file);
@@ -883,10 +1030,9 @@
       });
     }
 
-    // Hantar Data Baharu ke Google Sheets
     async function commitAdminUpdate() {
       if (!extractedAdminData) {
-        alert("Sila pilih fail Excel yang sah terlebih dahulu.");
+        alert("Sila pilih fail Excel terlebih dahulu.");
         return;
       }
 
@@ -908,17 +1054,16 @@
           body: JSON.stringify(payload)
         });
 
-        // Kemaskini memori tempatan
         STUDENTS_DATA = extractedAdminData;
         localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
         populateClassSelect();
 
-        alert("Tahniah! Senarai murid telah berjaya dikemaskini dan disegerakkan ke Google Sheets.");
+        alert("Senarai murid berjaya disimpan dan dikemaskini ke Google Sheets!");
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan ke Google Sheets`;
         switchPage('pelaporan');
       } catch (e) {
-        alert("Ralat kemaskini ke Google Sheets: " + e.message);
+        alert("Ralat kemaskini: " + e.message);
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan ke Google Sheets`;
       }
