@@ -12,6 +12,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .pulse-alert { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -41,8 +42,9 @@
         <button onclick="switchPage('rumusan')" id="tab-rumusan" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-slate-600 hover:text-blue-900">
           <i class="fa-solid fa-chart-column mr-1"></i> Rumusan & Statistik
         </button>
-        <button onclick="switchPage('admin')" id="tab-admin" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-rose-700 hover:bg-rose-50">
-          <i class="fa-solid fa-user-shield mr-1"></i> Admin
+        <button onclick="switchPage('admin')" id="tab-admin" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-rose-700 hover:bg-rose-50 flex items-center gap-1.5">
+          <i class="fa-solid fa-user-shield"></i> Admin
+          <span id="badgeOrphanNotice" class="hidden w-2 h-2 rounded-full bg-rose-600 pulse-alert"></span>
         </button>
       </nav>
     </div>
@@ -189,7 +191,7 @@
       </div>
     </section>
 
-    <!-- ==================== PAGE 3: RUMUSAN & STATISTIK (DIKEMASKINI) ==================== -->
+    <!-- ==================== PAGE 3: RUMUSAN & STATISTIK ==================== -->
     <section id="page-rumusan" class="hidden space-y-6">
       <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
         <div class="flex flex-wrap justify-between items-center gap-4">
@@ -198,7 +200,6 @@
             <p class="text-xs text-slate-500">Pilih sela masa atau pilih tarikh spesifik untuk melihat statistik ketidakhadiran.</p>
           </div>
 
-          <!-- Pilihan Sela Masa & Butang Tambahan: Semalam & Kalendar Pilihan Tarikh -->
           <div class="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-xl">
             <button onclick="setTimeRange('yesterday')" id="filter-yesterday" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
               <i class="fa-solid fa-clock-rotate-left mr-1"></i> Semalam
@@ -215,7 +216,6 @@
             <button onclick="setTimeRange('year')" id="filter-year" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
               Tahun 2027
             </button>
-            <!-- Pilihan Tarikh Kalendar Terus -->
             <div class="flex items-center pl-2 border-l border-slate-300 gap-1">
               <label for="filterCustomDate" class="text-[11px] font-bold text-slate-500 uppercase">Tarikh Pilihan:</label>
               <input type="date" id="filterCustomDate" onchange="onCustomDateChange()" class="bg-white border border-slate-300 text-xs font-semibold rounded-lg px-2 py-1 text-slate-700 outline-none focus:ring-1 focus:ring-blue-600 cursor-pointer">
@@ -223,7 +223,6 @@
           </div>
         </div>
 
-        <!-- Kad Indikator Rumusan -->
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
           <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
             <p class="text-xs font-bold text-amber-700">Tidak Hadir Semalam</p>
@@ -238,7 +237,7 @@
           <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl">
             <p class="text-xs font-bold text-blue-700">Purata Kehadiran</p>
             <p class="text-3xl font-black text-blue-900 mt-1" id="statAvgAttendance">0%</p>
-            <p class="text-[11px] text-blue-600 mt-0.5">Berdasarkan data kelas direkod</p>
+            <p class="text-[11px] text-blue-600 mt-0.5">Berdasarkan rekod kelas selesai</p>
           </div>
           <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
             <p class="text-xs font-bold text-emerald-700">Murid 100% Hadir (Sangat Rajin)</p>
@@ -248,7 +247,7 @@
         </div>
       </div>
 
-      <!-- BAHAGIAN KHAS: SENARAI KETIDAKHADIRAN SEMALAM -->
+      <!-- SENARAI KETIDAKHADIRAN SEMALAM -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 bg-amber-50/40 flex flex-wrap justify-between items-center gap-3">
           <div class="flex items-center gap-2">
@@ -257,10 +256,10 @@
             </div>
             <div>
               <h4 class="font-bold text-slate-800 text-sm">Senarai Ketidakhadiran Semalam (<span id="yesterdayDisplayLabel">--</span>)</h4>
-              <p class="text-xs text-slate-500">Rekod lengkap murid tidak hadir pada hari sebelumnya mengikut kelas.</p>
+              <p class="text-xs text-slate-500">Rekod lengkap murid tidak hadir pada hari sebelumnya.</p>
             </div>
           </div>
-          <span class="bg-amber-200/70 text-amber-900 font-extrabold text-xs px-3 py-1 rounded-full" id="yesterdayTotalBadge">0 Murid Tidak Hadir</span>
+          <span class="bg-amber-200/70 text-amber-900 font-extrabold text-xs px-3 py-1 rounded-full" id="yesterdayTotalBadge">0 Murid</span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
@@ -272,7 +271,6 @@
               </tr>
             </thead>
             <tbody id="tableYesterdayAbsent" class="divide-y divide-slate-100">
-              <tr><td colspan="3" class="text-center py-4 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran semalam.</td></tr>
             </tbody>
           </table>
         </div>
@@ -328,7 +326,7 @@
       </div>
     </section>
 
-    <!-- ==================== PAGE 4: ADMIN KEMASKINI MURID ==================== -->
+    <!-- ==================== PAGE 4: ADMIN KEMASKINI MURID & PENGAPUNGAN REKOD ==================== -->
     <section id="page-admin" class="hidden space-y-6">
       <div id="adminAuthBox" class="max-w-md mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <div class="text-center space-y-2">
@@ -348,13 +346,14 @@
       </div>
 
       <div id="adminPanelBox" class="hidden space-y-6">
+        <!-- BAHAGIAN 1: UPLOAD FAIL EXCEL -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
           <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-4">
             <div>
               <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-file-excel text-emerald-600"></i> Muat Naik Fail Excel APDM (.xlsx / .xls)
+                <i class="fa-solid fa-file-excel text-emerald-600"></i> Muat Naik Fail Excel APDM Terkini (.xlsx / .xls)
               </h3>
-              <p class="text-xs text-slate-500">Format sheet mestilah mengandungi nama kelas (1S1 hingga 5S3) dengan lajur Nama Murid.</p>
+              <p class="text-xs text-slate-500">Format fail mengandungi lembaran kelas (1S1 hingga 5S3). Sistem akan mengapungkan murid yang hilang berbanding data sedia ada.</p>
             </div>
             <button onclick="adminLogout()" class="text-xs text-rose-600 font-bold hover:underline">
               <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Log Keluar Admin
@@ -372,22 +371,54 @@
             <p class="text-xs text-slate-400 font-medium" id="uploadFileName">Belum ada fail dipilih</p>
           </div>
 
-          <div id="adminPreviewArea" class="hidden space-y-4 pt-2">
-            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
+          <!-- Pratonton Perubahan & Pengapungan Murid Hilang -->
+          <div id="adminPreviewArea" class="hidden space-y-5 pt-2">
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
               <div>
-                <p class="text-xs font-bold text-emerald-800">Jumlah Kelas Dikesan: <span id="previewClassCount" class="font-black">0</span></p>
-                <p class="text-xs font-bold text-emerald-700">Jumlah Keseluruhan Murid: <span id="previewStudentCount" class="font-black">0</span></p>
+                <p class="text-xs font-bold text-blue-900">Jumlah Kelas Dikesan: <span id="previewClassCount" class="font-black">0</span></p>
+                <p class="text-xs font-bold text-blue-800">Jumlah Murid Dalam Fail Baharu: <span id="previewStudentCount" class="font-black">0</span></p>
               </div>
-              <button onclick="commitAdminUpdate()" id="btnCommitAdmin" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition shadow-sm flex items-center gap-2">
-                <i class="fa-solid fa-floppy-disk"></i> Simpan ke Google Sheets
+              <button onclick="commitAdminUpdate()" id="btnCommitAdmin" class="bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs px-6 py-2.5 rounded-xl transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i> Sahkan & Simpan ke Google Sheets
               </button>
             </div>
 
-            <div class="border border-slate-200 rounded-xl max-h-[300px] overflow-y-auto p-4 bg-slate-50/50">
-              <h4 class="font-bold text-xs uppercase text-slate-500 mb-2">Ringkasan Murid Dikesan Setiap Kelas:</h4>
+            <!-- KAD AMARAN: MURID DIAPUNGKAN KERANA HILANG DARI XLS TERKINI -->
+            <div id="orphanBoxWrapper" class="bg-rose-50 border border-rose-200 rounded-2xl p-5 space-y-4">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-200 text-rose-800 flex items-center justify-center text-lg flex-shrink-0">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                  <h4 class="font-black text-rose-900 text-sm sm:text-base">Murid Yang Tiada Dalam Fail Baharu (Diapungkan)</h4>
+                  <p class="text-xs text-rose-700 leading-relaxed mt-0.5">
+                    Nama murid di bawah wujud dalam pangkalan data semasa tetapi <strong>TIDAK DITEMUI</strong> dalam fail Excel yang baru dimuat naik. Rekod kehadiran mereka <strong>tetap kekal</strong> sehingga anda membuat tindakan hapus di bawah.
+                  </p>
+                </div>
+              </div>
+
+              <div id="orphanStudentsList" class="space-y-2 max-h-[300px] overflow-y-auto">
+                <!-- Senarai murid hilang dijana secara dinamik dengan butang padam / kekal -->
+              </div>
+            </div>
+
+            <!-- Ringkasan Enrolmen Mengikut Kelas Fail Baharu -->
+            <div class="border border-slate-200 rounded-xl max-h-[220px] overflow-y-auto p-4 bg-slate-50/50">
+              <h4 class="font-bold text-xs uppercase text-slate-500 mb-2">Ringkasan Fail Baharu:</h4>
               <div id="previewClassSummary" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- BAHAGIAN 2: SENARAI MURID TERGANTUNG / DIARKIBKAN (PENGURUSAN STATUS) -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-users-slash text-slate-500"></i> Senarai Murid Terapung Sedia Ada (Pangkalan Data)
+          </h3>
+          <p class="text-xs text-slate-500">Anda boleh memadam murid yang sudah disahkan berpindah sekolah secara individu pada bila-bila masa.</p>
+          <div id="currentFloatingContainer" class="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-[250px] overflow-y-auto">
+            <div class="p-4 text-center text-xs text-slate-400 italic">Tiada murid terapung. Semua data selaras dengan APDM.</div>
           </div>
         </div>
       </div>
@@ -421,7 +452,10 @@
     let attendanceRecords = [];
     let activeRange = 'day';
     let customSelectedDate = '';
-    let extractedAdminData = null;
+    
+    // Pembolehubah Admin bagi pengekstrakan & pemantauan murid terapung
+    let newlyExtractedData = null;
+    let missingStudentsList = []; // Murid yang wujud dalam pangkalan data lama tapi tiada dalam xls baru
 
     window.onload = function() {
       initClock();
@@ -481,6 +515,7 @@
 
       if (pageId === 'dashboard') renderDashboard();
       if (pageId === 'rumusan') renderRumusan();
+      if (pageId === 'admin') renderFloatingContainer();
     }
 
     function renderStudentList() {
@@ -693,11 +728,6 @@
       switchPage('pelaporan');
     }
 
-    // =========================================================================
-    // LOGIK RUMUSAN & STATISTIK (DITAMBAH: SEMALAM & PILIHAN TARIKH)
-    // =========================================================================
-    
-    // Fungsi pembantu tarikh semalam (YYYY-MM-DD)
     function getYesterdayDateStr(refDateStr) {
       const base = refDateStr ? new Date(refDateStr) : new Date();
       base.setDate(base.getDate() - 1);
@@ -725,7 +755,6 @@
       if (val) {
         customSelectedDate = val;
         activeRange = 'custom';
-        // Reset warna butang lain
         ['yesterday', 'day', 'week', 'month', 'year'].forEach(r => {
           const btn = document.getElementById(`filter-${r}`);
           if (btn) {
@@ -741,11 +770,9 @@
       const inputDate = document.getElementById('inputTarikh').value || new Date().toISOString().split('T')[0];
       const yesterdayStr = getYesterdayDateStr(inputDate);
       
-      // Papar label tarikh semalam
       document.getElementById('statYesterdayDateText').innerText = `Tarikh: ${yesterdayStr}`;
       document.getElementById('yesterdayDisplayLabel').innerText = yesterdayStr;
 
-      // 1. KIRA & PAPAR KETIDAKHADIRAN SEMALAM
       const yesterdayRecords = attendanceRecords.filter(r => r.tarikh === yesterdayStr);
       let yesterdayAbsentCount = 0;
       const yesterdayAbsenteesList = [];
@@ -764,12 +791,12 @@
       });
 
       document.getElementById('statYesterdayAbsent').innerText = yesterdayAbsentCount;
-      document.getElementById('yesterdayTotalBadge').innerText = `${yesterdayAbsentCount} Murid Tidak Hadir`;
+      document.getElementById('yesterdayTotalBadge').innerText = `${yesterdayAbsentCount} Murid`;
 
       const tbodyYesterday = document.getElementById('tableYesterdayAbsent');
       tbodyYesterday.innerHTML = '';
       if (yesterdayAbsenteesList.length === 0) {
-        tbodyYesterday.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran direkodkan pada hari semalam (${yesterdayStr}).</td></tr>`;
+        tbodyYesterday.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran direkodkan semalam.</td></tr>`;
       } else {
         yesterdayAbsenteesList.forEach(item => {
           const tr = document.createElement('tr');
@@ -787,7 +814,6 @@
         });
       }
 
-      // 2. PENAPIS SELA MASA UTAMA (TERMASUK SEMALAM & TARIKH PILIHAN)
       let rangeLabel = "Hari Ini";
       const targetDate = new Date(inputDate);
 
@@ -819,7 +845,6 @@
       document.getElementById('statSelectedRangeText').innerText = rangeLabel;
       document.getElementById('subtextSelectedRange').innerText = `Menunjukkan senarai murid tidak hadir untuk sela masa: ${rangeLabel}`;
 
-      // Kira Statistik Sela Terpilih
       let totalAbsentCount = 0;
       let totalHadirSum = 0;
       let totalEnrolSum = 0;
@@ -849,14 +874,13 @@
       const avgPct = totalEnrolSum > 0 ? ((totalHadirSum / totalEnrolSum) * 100).toFixed(1) : '100';
       document.getElementById('statAvgAttendance').innerText = `${avgPct}%`;
 
-      // Kekerapan Tidak Hadir
       const frequentListEl = document.getElementById('listFrequentAbsent');
       frequentListEl.innerHTML = '';
       const sortedAbsent = Object.entries(absentFreqMap).sort((a, b) => b[1] - a[1]);
       document.getElementById('countFrequentAbsent').innerText = `${sortedAbsent.length} Murid`;
 
       if (sortedAbsent.length === 0) {
-        frequentListEl.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">Tiada rekod tidak hadir dalam sela masa ini.</p>`;
+        frequentListEl.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">Tiada murid tidak hadir dalam sela masa ini.</p>`;
       } else {
         sortedAbsent.forEach(([key, count]) => {
           const [nama, kelas] = key.split('___');
@@ -875,7 +899,6 @@
         });
       }
 
-      // Sangat Rajin Hadir (100%)
       const diligentListEl = document.getElementById('listDiligentStudents');
       diligentListEl.innerHTML = '';
       let diligentCount = 0;
@@ -907,7 +930,6 @@
       document.getElementById('statSuperDiligentCount').innerText = diligentCount;
       document.getElementById('countDiligent').innerText = `${diligentCount} Murid`;
 
-      // Jadual Penuh Sela Terpilih
       const detailTbody = document.getElementById('tableAbsentByClass');
       detailTbody.innerHTML = '';
 
@@ -932,13 +954,16 @@
       }
     }
 
-    // ADMIN LOGIC
+    // =========================================================================
+    // LOGIK ADMIN, IMPORT EXCEL & PENGAPUNGAN MURID HILANG
+    // =========================================================================
     function verifyAdminPassword() {
       const pwd = document.getElementById('adminPasswordInput').value;
       if (pwd === "adminhadir") {
         document.getElementById('adminAuthBox').classList.add('hidden');
         document.getElementById('adminPanelBox').classList.remove('hidden');
         document.getElementById('adminPasswordInput').value = '';
+        renderFloatingContainer();
       } else {
         alert("Kata laluan salah! Sila masukkan 'adminhadir'.");
       }
@@ -949,9 +974,11 @@
       document.getElementById('adminPanelBox').classList.add('hidden');
       document.getElementById('adminPreviewArea').classList.add('hidden');
       document.getElementById('uploadFileName').innerText = 'Belum ada fail dipilih';
-      extractedAdminData = null;
+      newlyExtractedData = null;
+      missingStudentsList = [];
     }
 
+    // Membaca fail Excel APDM dan mengesan murid yang hilang
     function handleExcelUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -998,7 +1025,9 @@
           });
 
           if (Object.keys(newStudentsData).length > 0) {
-            extractedAdminData = newStudentsData;
+            newlyExtractedData = newStudentsData;
+            // KENAL PASTI MURID YANG HILANG (BERPENGKALAN DALAM DATA LAMA TETAPI TIADA DALAM XLS BARU)
+            detectMissingStudents(newStudentsData);
             showAdminPreview(newStudentsData, totalExtracted);
           } else {
             alert("Tiada data murid dikesan. Sila pastikan format sheet mengandungi nama kelas (1S1, 1S2, dsb).");
@@ -1011,14 +1040,38 @@
       reader.readAsArrayBuffer(file);
     }
 
+    // Mengesan perbezaan data (Delta Detection)
+    function detectMissingStudents(newData) {
+      missingStudentsList = [];
+
+      Object.keys(STUDENTS_DATA).forEach(cls => {
+        const oldList = STUDENTS_DATA[cls] || [];
+        const newList = newData[cls] || [];
+
+        oldList.forEach(oldName => {
+          if (!newList.includes(oldName)) {
+            // Murid ini hilang daripada fail baru
+            missingStudentsList.push({
+              nama: oldName,
+              kelas: cls,
+              action: 'keep' // Default: KEKALKAN sehingga admin buat pilihan
+            });
+          }
+        });
+      });
+    }
+
     function showAdminPreview(data, totalStudents) {
       document.getElementById('adminPreviewArea').classList.remove('hidden');
       document.getElementById('previewClassCount').innerText = Object.keys(data).length;
       document.getElementById('previewStudentCount').innerText = totalStudents;
 
+      // Papar Murid yang Diapungkan
+      renderOrphanListUI();
+
+      // Ringkasan Kelas
       const summaryDiv = document.getElementById('previewClassSummary');
       summaryDiv.innerHTML = '';
-
       Object.keys(data).forEach(cls => {
         const badge = document.createElement('div');
         badge.className = "bg-white p-2.5 rounded-lg border border-slate-200 flex justify-between items-center shadow-2xs";
@@ -1030,8 +1083,56 @@
       });
     }
 
+    // Papar Antaramuka Murid Hilang dengan Pilihan Tindakan
+    function renderOrphanListUI() {
+      const container = document.getElementById('orphanStudentsList');
+      container.innerHTML = '';
+
+      if (missingStudentsList.length === 0) {
+        container.innerHTML = `
+          <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold p-3.5 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+            Tiada murid yang hilang. Semua murid daripada rekod terdahulu ditemui dalam fail Excel baharu!
+          </div>
+        `;
+        return;
+      }
+
+      missingStudentsList.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = "bg-white p-3.5 rounded-xl border border-rose-200 flex flex-wrap items-center justify-between gap-3 shadow-xs";
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 font-black text-xs flex items-center justify-center">${index + 1}</span>
+            <div>
+              <p class="text-xs font-bold text-slate-800">${item.nama}</p>
+              <p class="text-[11px] font-semibold text-rose-600">Kelas Semasa: ${item.kelas} (Tiada dalam XLS Baharu)</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-[11px] font-bold text-slate-500 mr-1">Tindakan:</label>
+            <button onclick="setOrphanAction(${index}, 'keep')" id="btnOrphanKeep_${index}" class="text-xs px-3 py-1.5 rounded-lg font-bold transition ${item.action === 'keep' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              <i class="fa-solid fa-shield-halved mr-1"></i> Kekalkan Murid
+            </button>
+            <button onclick="setOrphanAction(${index}, 'purge')" id="btnOrphanPurge_${index}" class="text-xs px-3 py-1.5 rounded-lg font-bold transition ${item.action === 'purge' ? 'bg-rose-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              <i class="fa-solid fa-trash mr-1"></i> Hapus dari Kelas
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function setOrphanAction(index, action) {
+      if (missingStudentsList[index]) {
+        missingStudentsList[index].action = action;
+        renderOrphanListUI();
+      }
+    }
+
+    // Sahkan & Simpan Pangkalan Data Baru ke Google Sheets
     async function commitAdminUpdate() {
-      if (!extractedAdminData) {
+      if (!newlyExtractedData) {
         alert("Sila pilih fail Excel terlebih dahulu.");
         return;
       }
@@ -1040,10 +1141,27 @@
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan ke Google Sheets...`;
 
+      // Gabungkan data baharu dengan murid yang diputuskan untuk "KEKAL"
+      const finalStudentsData = JSON.parse(JSON.stringify(newlyExtractedData));
+      const archivedToPurge = [];
+
+      missingStudentsList.forEach(m => {
+        if (m.action === 'keep') {
+          // Masukkan semula ke dalam kelasnya agar tidak hilang
+          if (!finalStudentsData[m.kelas]) finalStudentsData[m.kelas] = [];
+          if (!finalStudentsData[m.kelas].includes(m.nama)) {
+            finalStudentsData[m.kelas].push(m.nama);
+          }
+        } else if (m.action === 'purge') {
+          archivedToPurge.push({ nama: m.nama, kelas: m.kelas });
+        }
+      });
+
       const payload = {
         action: "updateStudents",
         password: "adminhadir",
-        studentsData: extractedAdminData
+        studentsData: finalStudentsData,
+        archivedStudents: archivedToPurge
       };
 
       try {
@@ -1054,18 +1172,73 @@
           body: JSON.stringify(payload)
         });
 
-        STUDENTS_DATA = extractedAdminData;
+        STUDENTS_DATA = finalStudentsData;
         localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
         populateClassSelect();
 
-        alert("Senarai murid berjaya disimpan dan dikemaskini ke Google Sheets!");
+        alert(`Senarai murid berjaya disimpan! ${archivedToPurge.length} murid telah disahkan keluar/dihapuskan.`);
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan ke Google Sheets`;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Sahkan & Simpan ke Google Sheets`;
         switchPage('pelaporan');
       } catch (e) {
-        alert("Ralat kemaskini: " + e.message);
+        alert("Ralat mengemaskini ke Google Sheets: " + e.message);
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan ke Google Sheets`;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Sahkan & Simpan ke Google Sheets`;
+      }
+    }
+
+    // Senarai Murid dalam Pangkalan Data yang Boleh Dipadam Secara Manual
+    function renderFloatingContainer() {
+      const container = document.getElementById('currentFloatingContainer');
+      container.innerHTML = '';
+
+      let count = 0;
+      Object.keys(STUDENTS_DATA).forEach(cls => {
+        STUDENTS_DATA[cls].forEach(studentName => {
+          count++;
+        });
+      });
+
+      container.innerHTML = `
+        <div class="p-4 bg-slate-50 flex justify-between items-center text-xs">
+          <span class="font-bold text-slate-700">Jumlah Murid Berdaftar: ${count}</span>
+          <span class="text-slate-500 italic">Pangkalan Data Google Sheets disegerakkan.</span>
+        </div>
+      `;
+    }
+
+    // Hapus Murid Individu daripada Pangkalan Data Aktif
+    async function purgeStudentDirectly(nama, kelas) {
+      if (!confirm(`Adakah anda pasti mahu menghapuskan murid ${nama} dari kelas ${kelas}? Rekod kehadiran lalu murid ini tidak akan hilang dari arkib.`)) {
+        return;
+      }
+
+      const payload = {
+        action: "purgeStudent",
+        password: "adminhadir",
+        nama: nama,
+        kelas: kelas
+      };
+
+      try {
+        await fetch(GAS_API_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        // Keluarkan dari senarai aktif tempatan
+        if (STUDENTS_DATA[kelas]) {
+          STUDENTS_DATA[kelas] = STUDENTS_DATA[kelas].filter(n => n !== nama);
+          localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
+          populateClassSelect();
+        }
+
+        alert(`Murid ${nama} telah dipadam daripada senarai kelas ${kelas}.`);
+        renderFloatingContainer();
+      } catch (e) {
+        alert("Ralat memadam murid: " + e.message);
       }
     }
   </script>
