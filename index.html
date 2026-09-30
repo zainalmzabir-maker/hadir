@@ -165,7 +165,7 @@
         <div class="px-6 py-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4">
           <div>
             <h3 class="font-bold text-slate-800 text-lg">Status Kemaskini Kelas Hari Ini</h3>
-            <p class="text-xs text-slate-500">Memaparkan status terkini, nisbah hadir per enrolmen, senarai tidak hadir (termasuk status apungan), dan masa rekod diterima.</p>
+            <p class="text-xs text-slate-500">Memaparkan status terkini, nisbah hadir per enrolmen, senarai murid tidak hadir berserta alasan, dan masa rekod.</p>
           </div>
           <button onclick="loadRemoteData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
             <i class="fa-solid fa-arrows-rotate"></i> Muat Semula Data
@@ -173,15 +173,16 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
+          <table class="w-full text-left text-sm border-collapse">
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-b border-slate-200">
               <tr>
-                <th class="py-3 px-6">Kelas</th>
+                <!-- LAJUR KELAS DIAPUNGKAN (STICKY LEFT) -->
+                <th class="py-3 px-6 sticky left-0 z-20 bg-slate-50 border-r border-slate-200 shadow-xs">Kelas</th>
                 <th class="py-3 px-6">Status Kemaskini</th>
                 <th class="py-3 px-6">Masa Terakhir Kemaskini</th>
                 <th class="py-3 px-6">Kehadiran (Hadir / Semua)</th>
                 <!-- RUANGAN SELEPAS KEHADIRAN (HADIR / SEMUA) -->
-                <th class="py-3 px-6">Murid Tidak Hadir & Alasan</th>
+                <th class="py-3 px-6 min-w-[240px]">Murid Tidak Hadir & Alasan</th>
                 <th class="py-3 px-6">Peratusan (%)</th>
                 <th class="py-3 px-6">Tindakan</th>
               </tr>
@@ -428,7 +429,7 @@
   </main>
 
   <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
-    &copy; 2027 SMK Kamarul Ariffin (JEA7039). A-Null.
+    &copy; 2027 SMK Kamarul Ariffin (JEA7039). A-Null
   </footer>
 
   <!-- ==================== JAVASCRIPT ==================== -->
@@ -454,6 +455,7 @@
     let activeRange = 'day';
     let customSelectedDate = '';
     
+    // Pembolehubah Sesi Admin (disimpan dalam memori sementara tanpa mendedahkan teks katalaluan)
     let sessionAdminPassword = '';
     let newlyExtractedData = null;
     let missingStudentsList = [];
@@ -575,7 +577,7 @@
       container.innerHTML = '';
       document.getElementById('badgeEnrolmen').innerText = list.length;
 
-      // Semak jika sudah ada rekod sedia ada bagi tarikh dan kelas ini
+      // Semak jika sudah ada rekod kehadiran bagi tarikh dan kelas ini
       const existingRecords = attendanceRecords.filter(r => r.kelas === cls && r.tarikh === tarikh);
       const lastRecord = existingRecords.length > 0 ? existingRecords[existingRecords.length - 1] : null;
       const existingAbsentMap = {};
@@ -728,7 +730,7 @@
         const classRecordsToday = attendanceRecords.filter(r => r.kelas === cls && r.tarikh === today);
         const lastRecord = classRecordsToday.length > 0 ? classRecordsToday[classRecordsToday.length - 1] : null;
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50/80 transition";
+        tr.className = "group hover:bg-slate-50/80 transition";
 
         if (lastRecord) {
           completedCount++;
@@ -782,7 +784,8 @@
           }
 
           tr.innerHTML = `
-            <td class="py-3 px-6 font-bold text-slate-800">${cls}</td>
+            <!-- LAJUR KELAS TERAPUNG (STICKY LEFT) -->
+            <td class="py-3 px-6 font-bold text-slate-800 sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-slate-200 shadow-xs">${cls}</td>
             <td class="py-3 px-6">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Telah Dikemaskini
@@ -790,6 +793,7 @@
             </td>
             <td class="py-3 px-6 text-slate-600 font-mono text-xs">${lastRecord.timestamp}</td>
             <td class="py-3 px-6 font-bold text-slate-700">${hadir} / ${enrol} Murid</td>
+            <!-- RUANGAN SENARAI MURID TIDAK HADIR & ALASAN -->
             <td class="py-3 px-6">
               ${absenteesCellHtml}
             </td>
@@ -807,7 +811,8 @@
           `;
         } else {
           tr.innerHTML = `
-            <td class="py-3 px-6 font-bold text-slate-800">${cls}</td>
+            <!-- LAJUR KELAS TERAPUNG (STICKY LEFT) -->
+            <td class="py-3 px-6 font-bold text-slate-800 sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-slate-200 shadow-xs">${cls}</td>
             <td class="py-3 px-6">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">
                 <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Belum Selesai
@@ -1298,6 +1303,7 @@
       }
     }
 
+    // Sahkan & Simpan Pangkalan Data Baru ke Google Sheets
     async function commitAdminUpdate() {
       if (!newlyExtractedData) {
         alert("Sila pilih fail Excel terlebih dahulu.");
@@ -1371,6 +1377,7 @@
       `;
     }
 
+    // Hapus Murid Individu daripada Pangkalan Data Aktif
     async function purgeStudentDirectly(nama, kelas) {
       if (!confirm(`Adakah anda pasti mahu menghapuskan murid ${nama} dari kelas ${kelas}? Rekod kehadiran lalu murid ini tidak akan hilang dari arkib.`)) {
         return;
