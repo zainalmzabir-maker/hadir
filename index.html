@@ -180,7 +180,6 @@
                 <th class="py-3 px-6">Status Kemaskini</th>
                 <th class="py-3 px-6">Masa Terakhir Kemaskini</th>
                 <th class="py-3 px-6">Kehadiran (Hadir / Semua)</th>
-                <!-- RUANGAN BAHARU SELEPAS KEHADIRAN (HADIR / SEMUA) -->
                 <th class="py-3 px-6">Murid Tidak Hadir & Alasan</th>
                 <th class="py-3 px-6">Peratusan (%)</th>
                 <th class="py-3 px-6">Tindakan</th>
@@ -340,9 +339,9 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kata Laluan Admin</label>
-          <input type="password" id="adminPasswordInput" placeholder="Masukkan password..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 font-medium outline-none focus:ring-2 focus:ring-rose-500 text-slate-800">
+          <input type="password" id="adminPasswordInput" onkeydown="if(event.key==='Enter') verifyAdminPassword()" placeholder="Masukkan password..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 font-medium outline-none focus:ring-2 focus:ring-rose-500 text-slate-800">
         </div>
-        <button onclick="verifyAdminPassword()" class="w-full bg-rose-700 hover:bg-rose-800 text-white font-bold py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-2">
+        <button id="btnAdminVerify" onclick="verifyAdminPassword()" class="w-full bg-rose-700 hover:bg-rose-800 text-white font-bold py-2.5 rounded-xl transition shadow-sm flex items-center justify-center gap-2">
           <i class="fa-solid fa-key"></i> Sahkan Kata Laluan
         </button>
       </div>
@@ -454,9 +453,10 @@
     let activeRange = 'day';
     let customSelectedDate = '';
     
-    // Pembolehubah Admin bagi pengekstrakan & pemantauan murid terapung
+    // Pembolehubah Sesi Admin (disimpan dalam memori sementara tanpa mendedahkan teks katalaluan)
+    let sessionAdminPassword = '';
     let newlyExtractedData = null;
-    let missingStudentsList = []; // Murid yang wujud dalam pangkalan data lama tapi tiada dalam xls baru
+    let missingStudentsList = [];
 
     window.onload = function() {
       initClock();
@@ -669,7 +669,6 @@
           totalPresentToday += hadir;
           totalAbsentToday += absent;
 
-          // Semak dan bina senarai murid tidak hadir berserta sebab
           let absList = [];
           if (lastRecord.absentees) {
             if (Array.isArray(lastRecord.absentees)) {
@@ -710,7 +709,6 @@
             </td>
             <td class="py-3 px-6 text-slate-600 font-mono text-xs">${lastRecord.timestamp}</td>
             <td class="py-3 px-6 font-bold text-slate-700">${hadir} / ${enrol} Murid</td>
-            <!-- RUANGAN SENARAI TIDAK HADIR & ALASAN -->
             <td class="py-3 px-6">
               ${absenteesCellHtml}
             </td>
@@ -736,7 +734,6 @@
             </td>
             <td class="py-3 px-6 text-slate-400 text-xs italic">Tiada Rekod</td>
             <td class="py-3 px-6 text-slate-400">- / ${STUDENTS_DATA[cls].length} Murid</td>
-            <!-- RUANGAN KOSONG JIKA BELUM ADA REKOD -->
             <td class="py-3 px-6 text-slate-400 text-xs italic">-</td>
             <td class="py-3 px-6 text-slate-400">-</td>
             <td class="py-3 px-6">
@@ -994,21 +991,59 @@
     }
 
     // =========================================================================
-    // LOGIK ADMIN, IMPORT EXCEL & PENGAPUNGAN MURID HILANG
+    // LOGIK ADMIN: PENGESAHAN KESELAMATAN BERASASKAN GOOGLE APPS SCRIPT
     // =========================================================================
-    function verifyAdminPassword() {
-      const pwd = document.getElementById('adminPasswordInput').value;
-      if (pwd === "adminhadir") {
-        document.getElementById('adminAuthBox').classList.add('hidden');
-        document.getElementById('adminPanelBox').classList.remove('hidden');
-        document.getElementById('adminPasswordInput').value = '';
-        renderFloatingContainer();
-      } else {
-        alert("Kata laluan salah! Sila masukkan 'adminhadir'.");
+    async function verifyAdminPassword() {
+      const inputEl = document.getElementById('adminPasswordInput');
+      const btn = document.getElementById('btnAdminVerify');
+      const pwd = inputEl.value.trim();
+
+      if (!pwd) {
+        alert("Sila masukkan kata laluan admin.");
+        inputEl.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Memeriksa Akses...`;
+
+      try {
+        let resData;
+        try {
+          const res = await fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "verifyAdmin", password: pwd })
+          });
+          resData = await res.json();
+        } catch (postErr) {
+          // Fallback kepada kaedah GET jika pelayar menyekat redirect POST
+          const res = await fetch(`${GAS_API_URL}?action=verifyAdmin&password=${encodeURIComponent(pwd)}`);
+          resData = await res.json();
+        }
+
+        if (resData && resData.status === "success") {
+          // Kata laluan disimpan dalam memori sesi sahaja
+          sessionAdminPassword = pwd;
+          document.getElementById('adminAuthBox').classList.add('hidden');
+          document.getElementById('adminPanelBox').classList.remove('hidden');
+          inputEl.value = '';
+          renderFloatingContainer();
+        } else {
+          alert("Kata laluan tidak sah! Sila cuba lagi.");
+          inputEl.value = '';
+          inputEl.focus();
+        }
+      } catch (err) {
+        alert("Gagal menghubungi pangkalan data: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-key"></i> Sahkan Kata Laluan`;
       }
     }
 
     function adminLogout() {
+      sessionAdminPassword = '';
       document.getElementById('adminAuthBox').classList.remove('hidden');
       document.getElementById('adminPanelBox').classList.add('hidden');
       document.getElementById('adminPreviewArea').classList.add('hidden');
@@ -1017,6 +1052,7 @@
       missingStudentsList = [];
     }
 
+    // Membaca fail Excel APDM dan mengesan murid yang hilang
     function handleExcelUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1162,6 +1198,7 @@
       }
     }
 
+    // Sahkan & Simpan Pangkalan Data Baru ke Google Sheets
     async function commitAdminUpdate() {
       if (!newlyExtractedData) {
         alert("Sila pilih fail Excel terlebih dahulu.");
@@ -1188,7 +1225,7 @@
 
       const payload = {
         action: "updateStudents",
-        password: "adminhadir",
+        password: sessionAdminPassword,
         studentsData: finalStudentsData,
         archivedStudents: archivedToPurge
       };
@@ -1235,6 +1272,7 @@
       `;
     }
 
+    // Hapus Murid Individu daripada Pangkalan Data Aktif
     async function purgeStudentDirectly(nama, kelas) {
       if (!confirm(`Adakah anda pasti mahu menghapuskan murid ${nama} dari kelas ${kelas}? Rekod kehadiran lalu murid ini tidak akan hilang dari arkib.`)) {
         return;
@@ -1242,7 +1280,7 @@
 
       const payload = {
         action: "purgeStudent",
-        password: "adminhadir",
+        password: sessionAdminPassword,
         nama: nama,
         kelas: kelas
       };
