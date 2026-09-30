@@ -73,7 +73,7 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tarikh Kehadiran</label>
-              <input type="date" id="inputTarikh" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
+              <input type="date" id="inputTarikh" onchange="renderStudentList()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
             </div>
 
             <div>
@@ -165,7 +165,7 @@
         <div class="px-6 py-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4">
           <div>
             <h3 class="font-bold text-slate-800 text-lg">Status Kemaskini Kelas Hari Ini</h3>
-            <p class="text-xs text-slate-500">Memaparkan status terkini, nisbah hadir per enrolmen, senarai tidak hadir, dan masa rekod diterima.</p>
+            <p class="text-xs text-slate-500">Memaparkan status terkini, nisbah hadir per enrolmen, senarai tidak hadir (termasuk status apungan), dan masa rekod diterima.</p>
           </div>
           <button onclick="loadRemoteData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
             <i class="fa-solid fa-arrows-rotate"></i> Muat Semula Data
@@ -180,6 +180,7 @@
                 <th class="py-3 px-6">Status Kemaskini</th>
                 <th class="py-3 px-6">Masa Terakhir Kemaskini</th>
                 <th class="py-3 px-6">Kehadiran (Hadir / Semua)</th>
+                <!-- RUANGAN SELEPAS KEHADIRAN (HADIR / SEMUA) -->
                 <th class="py-3 px-6">Murid Tidak Hadir & Alasan</th>
                 <th class="py-3 px-6">Peratusan (%)</th>
                 <th class="py-3 px-6">Tindakan</th>
@@ -453,7 +454,6 @@
     let activeRange = 'day';
     let customSelectedDate = '';
     
-    // Pembolehubah Sesi Admin (disimpan dalam memori sementara tanpa mendedahkan teks katalaluan)
     let sessionAdminPassword = '';
     let newlyExtractedData = null;
     let missingStudentsList = [];
@@ -477,6 +477,53 @@
       document.getElementById('inputTarikh').value = today;
       document.getElementById('filterCustomDate').value = today;
       customSelectedDate = today;
+    }
+
+    // Fungsi Pengesanan Status & Pengiraan 48 Jam Bagi Sebab 'Apung'
+    function processAbsenteeReason(sebab, timestampStr) {
+      if (sebab === 'Apung (48 jam)') {
+        if (!timestampStr) {
+          return { display: 'Apung (48 jam)', isExpired: false, hoursLeft: 48, actual: 'Apung (48 jam)' };
+        }
+        
+        let recordTime;
+        const parts = String(timestampStr).trim().split(/[\sT]+/);
+        if (parts.length === 2) {
+          const d = parts[0].split('-');
+          const t = parts[1].split(':');
+          recordTime = new Date(d[0], d[1] - 1, d[2], t[0] || 0, t[1] || 0, t[2] || 0).getTime();
+        } else {
+          recordTime = new Date(timestampStr).getTime();
+        }
+
+        const now = Date.now();
+        const diffHours = (now - recordTime) / (1000 * 60 * 60);
+
+        if (diffHours >= 48) {
+          // Telah melepasi 48 jam -> bertukar automatik kepada Tanpa Kenyataan (Ponteng)
+          return {
+            display: 'Tanpa Kenyataan (Ponteng)',
+            isExpired: true,
+            hoursLeft: 0,
+            actual: 'Tanpa Kenyataan (Ponteng)'
+          };
+        } else {
+          const hoursLeft = Math.max(1, Math.ceil(48 - diffHours));
+          return {
+            display: `Apung (${hoursLeft}j lagi)`,
+            isExpired: false,
+            hoursLeft: hoursLeft,
+            actual: 'Apung (48 jam)'
+          };
+        }
+      }
+
+      return {
+        display: sebab || 'Tanpa Kenyataan (Ponteng)',
+        isExpired: false,
+        hoursLeft: null,
+        actual: sebab || 'Tanpa Kenyataan (Ponteng)'
+      };
     }
 
     function loadLocalOrRemoteStudents() {
@@ -519,30 +566,54 @@
       if (pageId === 'admin') renderFloatingContainer();
     }
 
+    // Memaparkan Senarai Murid dalam Borang Pelaporan
     function renderStudentList() {
       const cls = document.getElementById('selectKelas').value;
+      const tarikh = document.getElementById('inputTarikh').value;
       const list = STUDENTS_DATA[cls] || [];
       const container = document.getElementById('studentContainer');
       container.innerHTML = '';
       document.getElementById('badgeEnrolmen').innerText = list.length;
 
+      // Semak jika sudah ada rekod sedia ada bagi tarikh dan kelas ini
+      const existingRecords = attendanceRecords.filter(r => r.kelas === cls && r.tarikh === tarikh);
+      const lastRecord = existingRecords.length > 0 ? existingRecords[existingRecords.length - 1] : null;
+      const existingAbsentMap = {};
+
+      if (lastRecord && lastRecord.absentees) {
+        let absList = lastRecord.absentees;
+        if (typeof absList === 'string') {
+          try { absList = JSON.parse(absList); } catch(e) { absList = []; }
+        }
+        if (Array.isArray(absList)) {
+          absList.forEach(a => {
+            const proc = processAbsenteeReason(a.sebab, lastRecord.timestamp);
+            existingAbsentMap[a.nama] = proc.actual;
+          });
+        }
+      }
+
       list.forEach((name, idx) => {
+        const isAbsent = !!existingAbsentMap[name];
+        const currentReason = existingAbsentMap[name] || "Sakit / Demam";
+
         const item = document.createElement('div');
         item.className = "flex items-center justify-between p-3.5 hover:bg-slate-50 transition border-b border-slate-100 last:border-0";
         item.innerHTML = `
           <div class="flex items-center space-x-3">
             <span class="text-xs font-bold text-slate-400 w-6">${idx + 1}.</span>
-            <input type="checkbox" id="absent_${idx}" onchange="toggleReason(${idx})" class="absent-check w-4 h-4 text-rose-600 rounded border-slate-300 focus:ring-rose-500 cursor-pointer">
+            <input type="checkbox" id="absent_${idx}" onchange="toggleReason(${idx})" ${isAbsent ? 'checked' : ''} class="absent-check w-4 h-4 text-rose-600 rounded border-slate-300 focus:ring-rose-500 cursor-pointer">
             <label for="absent_${idx}" class="text-sm font-semibold text-slate-700 cursor-pointer select-none">${name}</label>
           </div>
-          <div id="reason_wrap_${idx}" class="hidden flex items-center space-x-2">
+          <div id="reason_wrap_${idx}" class="${isAbsent ? '' : 'hidden'} flex items-center space-x-2">
             <span class="text-xs font-bold text-rose-600">Sebab:</span>
             <select id="reason_${idx}" class="text-xs border border-rose-300 rounded-lg px-2.5 py-1 bg-white text-slate-700 focus:outline-rose-500">
-              <option value="Sakit / Demam">Sakit / Demam</option>
-              <option value="Kecemasan Keluarga">Kecemasan Keluarga</option>
-              <option value="Urusan Rasmi">Urusan Rasmi</option>
-              <option value="Masalah Pengangkutan">Masalah Pengangkutan</option>
-              <option value="Tanpa Kenyataan (Ponteng)">Tanpa Kenyataan (Ponteng)</option>
+              <option value="Sakit / Demam" ${currentReason === 'Sakit / Demam' ? 'selected' : ''}>Sakit / Demam</option>
+              <option value="Kecemasan Keluarga" ${currentReason === 'Kecemasan Keluarga' ? 'selected' : ''}>Kecemasan Keluarga</option>
+              <option value="Urusan Rasmi" ${currentReason === 'Urusan Rasmi' ? 'selected' : ''}>Urusan Rasmi</option>
+              <option value="Masalah Pengangkutan" ${currentReason === 'Masalah Pengangkutan' ? 'selected' : ''}>Masalah Pengangkutan</option>
+              <option value="Apung (48 jam)" ${currentReason === 'Apung (48 jam)' ? 'selected' : ''}>Apung (48 jam)</option>
+              <option value="Tanpa Kenyataan (Ponteng)" ${currentReason === 'Tanpa Kenyataan (Ponteng)' ? 'selected' : ''}>Tanpa Kenyataan (Ponteng)</option>
             </select>
           </div>
         `;
@@ -681,15 +752,25 @@
           let absenteesCellHtml = '';
           if (absList.length > 0) {
             absenteesCellHtml = `
-              <div class="space-y-1.5 max-h-28 overflow-y-auto pr-1">
-                ${absList.map(a => `
-                  <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs">
-                    <span class="font-semibold text-slate-800 leading-tight">• ${a.nama}</span>
-                    <span class="inline-block text-[10px] bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded font-medium whitespace-nowrap">
-                      ${a.sebab}
-                    </span>
-                  </div>
-                `).join('')}
+              <div class="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                ${absList.map(a => {
+                  const proc = processAbsenteeReason(a.sebab, lastRecord.timestamp);
+                  const isApung = proc.actual === 'Apung (48 jam)' && !proc.isExpired;
+                  
+                  return `
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs">
+                      <span class="font-semibold text-slate-800 leading-tight">• ${a.nama}</span>${isApung ? `
+                        <span class="inline-flex items-center gap-1 text-[10px] bg-amber-50 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">
+                          <i class="fa-regular fa-clock text-[9px]"></i> ${proc.display}
+                        </span>
+                      ` : `
+                        <span class="inline-block text-[10px] bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded font-medium whitespace-nowrap">
+                          ${proc.display}
+                        </span>
+                      `}
+                    </div>
+                  `;
+                }).join('')}
               </div>
             `;
           } else {
@@ -816,11 +897,14 @@
       yesterdayRecords.forEach(rec => {
         if (rec.absentees && Array.isArray(rec.absentees)) {
           rec.absentees.forEach(a => {
+            const proc = processAbsenteeReason(a.sebab, rec.timestamp);
             yesterdayAbsentCount++;
             yesterdayAbsenteesList.push({
               kelas: rec.kelas,
               nama: a.nama,
-              sebab: a.sebab
+              sebab: proc.actual,
+              sebabDisplay: proc.display,
+              isApung: proc.actual === 'Apung (48 jam)' && !proc.isExpired
             });
           });
         }
@@ -841,9 +925,15 @@
             <td class="py-2.5 px-6 font-bold text-slate-800 text-xs">${item.kelas}</td>
             <td class="py-2.5 px-6 font-semibold text-slate-700 text-xs">${item.nama}</td>
             <td class="py-2.5 px-6">
-              <span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded text-xs font-medium">
-                ${item.sebab}
-              </span>
+              ${item.isApung ? `
+                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded text-xs font-semibold">
+                  <i class="fa-regular fa-clock text-[10px]"></i> ${item.sebabDisplay}
+                </span>
+              ` : `
+                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded text-xs font-medium">
+                  ${item.sebabDisplay}
+                </span>
+              `}
             </td>
           `;
           tbodyYesterday.appendChild(tr);
@@ -892,7 +982,12 @@
         totalEnrolSum += Number(record.enrolmen);
 
         if (record.absentees && record.absentees.length > 0) {
-          record.absentees.forEach(a => {
+          let absList = record.absentees;
+          if (typeof absList === 'string') {
+            try { absList = JSON.parse(absList); } catch(e) { absList = []; }
+          }
+          absList.forEach(a => {
+            const proc = processAbsenteeReason(a.sebab, record.timestamp);
             totalAbsentCount++;
             const key = `${a.nama}___${record.kelas}`;
             absentFreqMap[key] = (absentFreqMap[key] || 0) + 1;
@@ -900,7 +995,9 @@
               tarikh: record.tarikh,
               kelas: record.kelas,
               nama: a.nama,
-              sebab: a.sebab
+              sebab: proc.actual,
+              sebabDisplay: proc.display,
+              isApung: proc.actual === 'Apung (48 jam)' && !proc.isExpired
             });
           });
         }
@@ -980,9 +1077,15 @@
             <td class="py-2.5 px-6 font-bold text-slate-800">${row.kelas}</td>
             <td class="py-2.5 px-6 font-semibold text-slate-700">${row.nama}</td>
             <td class="py-2.5 px-6">
-              <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-xs font-medium">
-                ${row.sebab}
-              </span>
+              ${row.isApung ? `
+                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded text-xs font-semibold">
+                  <i class="fa-regular fa-clock text-[10px]"></i> ${row.sebabDisplay}
+                </span>
+              ` : `
+                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-xs font-medium">
+                  ${row.sebabDisplay}
+                </span>
+              `}
             </td>
           `;
           detailTbody.appendChild(tr);
@@ -1017,13 +1120,11 @@
           });
           resData = await res.json();
         } catch (postErr) {
-          // Fallback kepada kaedah GET jika pelayar menyekat redirect POST
           const res = await fetch(`${GAS_API_URL}?action=verifyAdmin&password=${encodeURIComponent(pwd)}`);
           resData = await res.json();
         }
 
         if (resData && resData.status === "success") {
-          // Kata laluan disimpan dalam memori sesi sahaja
           sessionAdminPassword = pwd;
           document.getElementById('adminAuthBox').classList.add('hidden');
           document.getElementById('adminPanelBox').classList.remove('hidden');
@@ -1052,7 +1153,6 @@
       missingStudentsList = [];
     }
 
-    // Membaca fail Excel APDM dan mengesan murid yang hilang
     function handleExcelUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1198,7 +1298,6 @@
       }
     }
 
-    // Sahkan & Simpan Pangkalan Data Baru ke Google Sheets
     async function commitAdminUpdate() {
       if (!newlyExtractedData) {
         alert("Sila pilih fail Excel terlebih dahulu.");
@@ -1272,7 +1371,6 @@
       `;
     }
 
-    // Hapus Murid Individu daripada Pangkalan Data Aktif
     async function purgeStudentDirectly(nama, kelas) {
       if (!confirm(`Adakah anda pasti mahu menghapuskan murid ${nama} dari kelas ${kelas}? Rekod kehadiran lalu murid ini tidak akan hilang dari arkib.`)) {
         return;
