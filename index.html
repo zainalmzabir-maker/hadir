@@ -88,10 +88,20 @@
         </div>
 
         <div class="p-6 space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tarikh Kehadiran</label>
-              <input type="date" id="inputTarikh" onchange="renderStudentList()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
+              <input type="date" id="inputTarikh" onchange="onTarikhChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
+            </div>
+
+            <!-- RUANG STATUS HARI PERSEKOLAHAN (CARA 1: AD-HOC CUTI DIISYTIHAR DI SINI) -->
+            <div>
+              <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Status Hari Persekolahan</label>
+              <select id="selectStatusHari" onchange="onStatusHariChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
+                <option value="Biasa">Hari Persekolahan Biasa (Isnin-Jumaat)</option>
+                <option value="Ganti">Sekolah Ganti (Sabtu Persekolahan)</option>
+                <option value="Cuti">Cuti (Tiada Persekolahan / Cuti Am)</option>
+              </select>
             </div>
 
             <div>
@@ -116,13 +126,24 @@
             </div>
           </div>
 
+          <!-- NOTIS CUTI JIKA HARI INI CUTI -->
+          <div id="cutiNoticeBanner" class="hidden p-4 bg-amber-50 border border-amber-300 rounded-2xl flex items-center gap-3 text-amber-900 text-xs sm:text-sm font-semibold shadow-xs">
+            <div class="w-10 h-10 rounded-xl bg-amber-200 flex items-center justify-center text-amber-800 flex-shrink-0 text-xl">
+              <i class="fa-solid fa-umbrella-beach"></i>
+            </div>
+            <div>
+              <p class="font-extrabold text-amber-950 text-sm" id="cutiBannerTitle">Hari Ini Ditetapkan Sebagai Hari Cuti / Tiada Persekolahan</p>
+              <p class="text-amber-800 text-xs mt-0.5" id="cutiBannerDesc">Tiada rekod ketidakhadiran murid direkodkan dan hari ini TIDAK akan dikira dalam statistik hari persekolahan.</p>
+            </div>
+          </div>
+
           <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
             <div class="bg-slate-100/80 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
               <span class="text-xs font-extrabold uppercase tracking-wider text-slate-600">Senarai Murid Dalam Kelas</span>
               <span class="text-xs text-slate-500 font-medium italic">*Klik kotak jika murid tidak hadir</span>
             </div>
 
-            <div class="max-h-[420px] overflow-y-auto divide-y divide-slate-100" id="studentContainer">
+            <div class="max-h-[420px] overflow-y-auto divide-y divide-slate-100 transition-opacity" id="studentContainer">
             </div>
           </div>
 
@@ -194,7 +215,6 @@
           <table class="w-full text-left text-sm border-collapse">
             <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-b border-slate-200">
               <tr>
-                <!-- LAJUR KELAS DIAPUNGKAN (STICKY LEFT) -->
                 <th class="py-3 px-6 sticky left-0 z-20 bg-slate-50 border-r border-slate-200 shadow-xs">Kelas</th>
                 <th class="py-3 px-6">Status Kemaskini</th>
                 <th class="py-3 px-6">Masa Terakhir Kemaskini</th>
@@ -255,11 +275,9 @@
             <button onclick="setTimeRange('month')" id="filter-month" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
               Bulan Ini
             </button>
-            <!-- PENAPIS TAHUN 2026 -->
             <button onclick="setTimeRange('year-2026')" id="filter-year-2026" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
               Tahun 2026
             </button>
-            <!-- PENAPIS TAHUN 2027 -->
             <button onclick="setTimeRange('year-2027')" id="filter-year-2027" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
               Tahun 2027
             </button>
@@ -270,31 +288,41 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
+        <!-- 5 KAD METRIK STATISTIK -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-2">
+          <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl">
+            <p class="text-xs font-bold text-indigo-700">Jumlah Hari Persekolahan</p>
+            <p class="text-3xl font-black text-indigo-900 mt-1" id="statSchoolDaysCount">0 Hari</p>
+            <p class="text-[11px] text-indigo-600 mt-0.5" id="statSchoolDaysSubtext">Sela Masa Terpilih</p>
+          </div>
+
           <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
             <p class="text-xs font-bold text-amber-700">Tidak Hadir Semalam</p>
             <p class="text-3xl font-black text-amber-800 mt-1" id="statYesterdayAbsent">0</p>
             <p class="text-[11px] text-amber-600 mt-0.5" id="statYesterdayDateText">--</p>
           </div>
+
           <div class="bg-rose-50 border border-rose-200 p-4 rounded-xl">
-            <p class="text-xs font-bold text-rose-700">Jumlah Tidak Hadir (Sela Terpilih)</p>
+            <p class="text-xs font-bold text-rose-700">Jumlah Tidak Hadir</p>
             <p class="text-3xl font-black text-rose-800 mt-1" id="statTotalAbsent">0</p>
             <p class="text-[11px] text-rose-600 mt-0.5" id="statSelectedRangeText">Hari Ini</p>
           </div>
+
           <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl">
             <p class="text-xs font-bold text-blue-700">Purata Kehadiran</p>
             <p class="text-3xl font-black text-blue-900 mt-1" id="statAvgAttendance">0%</p>
             <p class="text-[11px] text-blue-600 mt-0.5">Berdasarkan rekod kelas selesai</p>
           </div>
+
           <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
-            <p class="text-xs font-bold text-emerald-700">Murid 100% Hadir (Sangat Rajin)</p>
+            <p class="text-xs font-bold text-emerald-700">Murid 100% Hadir (Rajin)</p>
             <p class="text-3xl font-black text-emerald-800 mt-1" id="statSuperDiligentCount">0</p>
             <p class="text-[11px] text-emerald-600 mt-0.5">Tiada sebarang rekod ponteng</p>
           </div>
         </div>
       </div>
 
-      <!-- JADUAL 1: SENARAI TIDAK HADIR MENGIKUT PENAPIS SELA TERPILIH (DILETAKKAN DI ATAS AGAR JELAS) -->
+      <!-- JADUAL 1: SENARAI TIDAK HADIR MENGIKUT PENAPIS SELA TERPILIH -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 bg-blue-50/40 flex flex-wrap justify-between items-center gap-3">
           <div>
@@ -347,7 +375,7 @@
         </div>
       </div>
 
-      <!-- JADUAL 2: SENARAI KETIDAKHADIRAN SEMALAM (RUJUKAN KHAS) -->
+      <!-- JADUAL 2: SENARAI KETIDAKHADIRAN SEMALAM -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 bg-amber-50/40 flex flex-wrap justify-between items-center gap-3">
           <div class="flex items-center gap-2">
@@ -377,7 +405,7 @@
       </div>
     </section>
 
-    <!-- ==================== PAGE 4: ADMIN KEMASKINI MURID & PENGAPUNGAN REKOD ==================== -->
+    <!-- ==================== PAGE 4: ADMIN KEMASKINI MURID & TAKWIM CUTI ==================== -->
     <section id="page-admin" class="hidden space-y-6">
       <div id="adminAuthBox" class="max-w-md mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <div class="text-center space-y-2">
@@ -385,7 +413,7 @@
             <i class="fa-solid fa-lock"></i>
           </div>
           <h3 class="text-lg font-bold text-slate-800">Akses Pentadbir (Admin)</h3>
-          <p class="text-xs text-slate-500">Sila masukkan kata laluan untuk mengemaskini senarai nama murid mengikut fail Excel APDM.</p>
+          <p class="text-xs text-slate-500">Sila masukkan kata laluan untuk mengurus senarai murid dan takwim cuti.</p>
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Kata Laluan Admin</label>
@@ -397,18 +425,92 @@
       </div>
 
       <div id="adminPanelBox" class="hidden space-y-6">
-        <!-- BAHAGIAN 1: UPLOAD FAIL EXCEL -->
+
+        <!-- BAHAGIAN 1: PENGURUSAN TAKWIM CUTI PERSEKOLAHAN (CARA 2: PUKAL / CUTI PENGGAL / CUTI UMUM) -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
           <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-4">
             <div>
               <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-file-excel text-emerald-600"></i> Muat Naik Fail Excel APDM Terkini (.xlsx / .xls)
+                <i class="fa-solid fa-calendar-plus text-indigo-600"></i> Pengurusan Takwim Cuti Sekolah (Pukal & Cuti Semester)
               </h3>
-              <p class="text-xs text-slate-500">Format fail mengandungi lembaran kelas (1S1 hingga 5S3). Sistem akan mengapungkan murid yang hilang berbanding data sedia ada.</p>
+              <p class="text-xs text-slate-500">Daftarkan cuti umum sehari atau cuti penggal/semester panjang berminggu-minggu dengan menetapkan tarikh mula dan akhir.</p>
             </div>
             <button onclick="adminLogout()" class="text-xs text-rose-600 font-bold hover:underline">
               <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Log Keluar Admin
             </button>
+          </div>
+
+          <!-- BORANG TAMBAH CUTI PUKAL -->
+          <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-5 space-y-4">
+            <h4 class="font-bold text-sm text-slate-700 flex items-center gap-2">
+              <i class="fa-solid fa-circle-plus text-indigo-700"></i> Daftar Cuti Baharu
+            </h4>
+
+            <div class="flex items-center gap-6 text-xs font-bold text-slate-700">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="radioJenisCuti" value="sehari" checked onchange="toggleHolidayInputMode()" class="text-indigo-600 focus:ring-indigo-500">
+                <span>Cuti Sehari (Cuti Umum / Peristiwa)</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="radioJenisCuti" value="julat" onchange="toggleHolidayInputMode()" class="text-indigo-600 focus:ring-indigo-500">
+                <span>Cuti Penggal / Semester (Panjang / Berminggu)</span>
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nama / Keterangan Cuti</label>
+                <input type="text" id="inputHolidayName" placeholder="Cth: Cuti Penggal 1 / Hari Raya" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-600">
+              </div>
+
+              <!-- Input Cuti Sehari -->
+              <div id="wrapperSingleDate">
+                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tarikh Cuti</label>
+                <input type="date" id="inputHolidaySingleDate" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-600">
+              </div>
+
+              <!-- Input Julat Tarikh Mula & Akhir (Cuti Semester/Penggal) -->
+              <div id="wrapperRangeStart" class="hidden">
+                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tarikh Mula Cuti</label>
+                <input type="date" id="inputHolidayStartDate" onchange="calcHolidayDuration()" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-600">
+              </div>
+              <div id="wrapperRangeEnd" class="hidden">
+                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tarikh Akhir Cuti</label>
+                <input type="date" id="inputHolidayEndDate" onchange="calcHolidayDuration()" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-600">
+              </div>
+            </div>
+
+            <!-- Previu kiraan hari cuti semester -->
+            <div id="holidayDurationPreview" class="hidden text-xs font-bold text-indigo-700 bg-indigo-100/70 p-2.5 rounded-xl flex items-center justify-between">
+              <span id="holidayDurationText">Tempoh: 0 hari cuti</span>
+              <span class="text-[11px] font-normal text-indigo-900">*Semua tarikh dalam sela ini akan direkodkan sebagai cuti</span>
+            </div>
+
+            <div class="flex justify-end pt-1">
+              <button onclick="saveNewHoliday()" id="btnAddHoliday" class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Cuti ke Google Sheets
+              </button>
+            </div>
+          </div>
+
+          <!-- SENARAI CUTI BERDAFTAR -->
+          <div class="space-y-3 pt-2">
+            <h4 class="font-bold text-xs uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-list-check text-slate-600"></i> Senarai Cuti Yang Telah Didaftarkan:
+            </h4>
+            <div id="holidaysListContainer" class="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-[280px] overflow-y-auto">
+              <div class="p-4 text-center text-xs text-slate-400 italic">Tiada cuti pukal didaftarkan.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BAHAGIAN 2: UPLOAD FAIL EXCEL APDM TERKINI -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+          <div class="border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-file-excel text-emerald-600"></i> Muat Naik Fail Excel APDM Terkini (.xlsx / .xls)
+            </h3>
+            <p class="text-xs text-slate-500">Format fail mengandungi lembaran kelas (1S1 hingga 5S3). Sistem akan mengapungkan murid yang hilang berbanding data sedia ada.</p>
           </div>
 
           <div class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-3">
@@ -434,7 +536,6 @@
               </button>
             </div>
 
-            <!-- KAD AMARAN: MURID DIAPUNGKAN KERANA HILANG DARI XLS TERKINI -->
             <div id="orphanBoxWrapper" class="bg-rose-50 border border-rose-200 rounded-2xl p-5 space-y-4">
               <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-xl bg-rose-200 text-rose-800 flex items-center justify-center text-lg flex-shrink-0">
@@ -452,7 +553,6 @@
               </div>
             </div>
 
-            <!-- Ringkasan Enrolmen Mengikut Kelas Fail Baharu -->
             <div class="border border-slate-200 rounded-xl max-h-[220px] overflow-y-auto p-4 bg-slate-50/50">
               <h4 class="font-bold text-xs uppercase text-slate-500 mb-2">Ringkasan Fail Baharu:</h4>
               <div id="previewClassSummary" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -461,7 +561,7 @@
           </div>
         </div>
 
-        <!-- BAHAGIAN 2: SENARAI MURID TERGANTUNG / DIARKIBKAN (PENGURUSAN STATUS) -->
+        <!-- BAHAGIAN 3: SENARAI MURID TERGANTUNG / DIARKIBKAN -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
           <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
             <i class="fa-solid fa-users-slash text-slate-500"></i> Senarai Murid Terapung Sedia Ada (Pangkalan Data)
@@ -503,10 +603,10 @@
     let activeRange = 'day';
     let customSelectedDate = '';
     
-    // Pembolehubah Tarikh Kemaskini Fail Excel APDM
-    let lastStudentDbDate = localStorage.getItem('smkka_last_db_date') || '';
+    // Senarai Cuti Pukal (Diselaraskan dari Google Sheets)
+    let HOLIDAYS_DATA = [];
 
-    // Pembolehubah Sesi Admin
+    let lastStudentDbDate = localStorage.getItem('smkka_last_db_date') || '';
     let sessionAdminPassword = '';
     let newlyExtractedData = null;
     let missingStudentsList = [];
@@ -515,6 +615,7 @@
       initClock();
       initDefaultDate();
       loadLocalOrRemoteStudents();
+      loadCachedHolidays();
       updateRumusanDbDateDisplay();
       loadRemoteData();
     };
@@ -531,22 +632,31 @@
       document.getElementById('inputTarikh').value = today;
       document.getElementById('filterCustomDate').value = today;
       customSelectedDate = today;
+      onTarikhChange();
+    }
+
+    function loadCachedHolidays() {
+      const cached = localStorage.getItem('smkka_holidays_cache');
+      if (cached) {
+        try {
+          HOLIDAYS_DATA = JSON.parse(cached);
+          renderHolidaysListUI();
+        } catch (e) {}
+      }
     }
 
     // =========================================================================
-    // FUNGSI RAWATAN & PENUKARAN TARIKH UNIVERSAL (BEBAS RALAT FORMAT)
+    // FUNGSI RAWATAN TARIKH & PENGESANAN CUTI
     // =========================================================================
     function parseDateSafe(val) {
       if (!val) return null;
       if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
       
       const str = String(val).trim();
-      // Format YYYY-MM-DD
       if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(str)) {
         const parts = str.split(/[-/T ]/);
         return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
       }
-      // Format DD/MM/YYYY atau DD-MM-YYYY
       if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}/.test(str)) {
         const parts = str.split(/[-/T ]/);
         return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
@@ -563,6 +673,85 @@
       return `${y}-${m}-${day}`;
     }
 
+    // Semak sama ada sesuatu tarikh jatuh dalam cuti pukal berdaftar
+    function findHolidayForDate(dateStr) {
+      if (!dateStr || !HOLIDAYS_DATA || HOLIDAYS_DATA.length === 0) return null;
+      for (let h of HOLIDAYS_DATA) {
+        if (h.dates && Array.isArray(h.dates) && h.dates.includes(dateStr)) {
+          return h;
+        }
+        if (h.mula && h.akhir && dateStr >= h.mula && dateStr <= h.akhir) {
+          return h;
+        }
+      }
+      return null;
+    }
+
+    // Apabila tarikh diubah di Borang Pelaporan
+    function onTarikhChange() {
+      const val = document.getElementById('inputTarikh').value;
+      const d = parseDateSafe(val);
+      const statusSelect = document.getElementById('selectStatusHari');
+      const noticeBanner = document.getElementById('cutiNoticeBanner');
+      const bannerTitle = document.getElementById('cutiBannerTitle');
+      const bannerDesc = document.getElementById('cutiBannerDesc');
+
+      const matchedHoliday = findHolidayForDate(val);
+
+      if (matchedHoliday) {
+        // Cuti Pukal Dikesan Secara Automatik
+        statusSelect.value = "Cuti";
+        bannerTitle.innerText = `Hari Ini Cuti Berdaftar: ${matchedHoliday.nama}`;
+        bannerDesc.innerText = `Tempoh: ${matchedHoliday.mula} hingga ${matchedHoliday.akhir} (${matchedHoliday.bilHari} hari). Tiada kehadiran diambil.`;
+        noticeBanner.classList.remove('hidden');
+      } else if (d) {
+        const dayOfWeek = d.getDay(); // 0 = Ahad, 6 = Sabtu
+        if (dayOfWeek === 6) {
+          statusSelect.value = "Ganti";
+          noticeBanner.classList.add('hidden');
+        } else if (dayOfWeek === 0) {
+          statusSelect.value = "Cuti";
+          bannerTitle.innerText = "Hari Ahad - Cuti Mingguan";
+          bannerDesc.innerText = "Hari Ahad ditetapkan sebagai cuti mingguan persekolahan.";
+          noticeBanner.classList.remove('hidden');
+        } else {
+          statusSelect.value = "Biasa";
+          noticeBanner.classList.add('hidden');
+        }
+      }
+
+      onStatusHariChange();
+      renderStudentList();
+    }
+
+    function onStatusHariChange() {
+      const status = document.getElementById('selectStatusHari').value;
+      const container = document.getElementById('studentContainer');
+      const noticeBanner = document.getElementById('cutiNoticeBanner');
+      const bannerTitle = document.getElementById('cutiBannerTitle');
+      const bannerDesc = document.getElementById('cutiBannerDesc');
+      const val = document.getElementById('inputTarikh').value;
+
+      if (status === 'Cuti') {
+        const matched = findHolidayForDate(val);
+        if (matched) {
+          bannerTitle.innerText = `Hari Ini Cuti Berdaftar: ${matched.nama}`;
+          bannerDesc.innerText = `Tempoh: ${matched.mula} hingga ${matched.akhir} (${matched.bilHari} hari). Tiada kehadiran diambil.`;
+        } else {
+          bannerTitle.innerText = "Hari Ini Ditetapkan Sebagai Hari Cuti (Ad-Hoc / Diisytiharkan)";
+          bannerDesc.innerText = "Hari ini tidak dikira dalam jumlah hari persekolahan dan tiada murid dikira ponteng.";
+        }
+        noticeBanner.classList.remove('hidden');
+        container.classList.add('opacity-30', 'pointer-events-none');
+        document.querySelectorAll('.absent-check').forEach(chk => chk.checked = false);
+        document.querySelectorAll('[id^="reason_wrap_"]').forEach(wrap => wrap.classList.add('hidden'));
+        updateCounter();
+      } else {
+        noticeBanner.classList.add('hidden');
+        container.classList.remove('opacity-30', 'pointer-events-none');
+      }
+    }
+
     function updateRumusanDbDateDisplay() {
       let totalStudentsSchoolRumusan = 0;
       Object.keys(STUDENTS_DATA).forEach(cls => totalStudentsSchoolRumusan += STUDENTS_DATA[cls].length);
@@ -576,7 +765,6 @@
       }
     }
 
-    // Fungsi Pengesanan Status & Pengiraan 48 Jam Bagi Sebab 'Apung'
     function processAbsenteeReason(sebab, timestampStr) {
       if (sebab === 'Apung (48 jam)') {
         if (!timestampStr) {
@@ -660,7 +848,10 @@
 
       if (pageId === 'dashboard') renderDashboard();
       if (pageId === 'rumusan') renderRumusan();
-      if (pageId === 'admin') renderFloatingContainer();
+      if (pageId === 'admin') {
+        renderFloatingContainer();
+        renderHolidaysListUI();
+      }
     }
 
     function renderStudentList() {
@@ -674,6 +865,11 @@
       const existingRecords = attendanceRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === tarikh);
       const lastRecord = existingRecords.length > 0 ? existingRecords[existingRecords.length - 1] : null;
       const existingAbsentMap = {};
+
+      if (lastRecord && lastRecord.statusHari) {
+        document.getElementById('selectStatusHari').value = lastRecord.statusHari;
+        onStatusHariChange();
+      }
 
       if (lastRecord && lastRecord.absentees) {
         let absList = lastRecord.absentees;
@@ -741,24 +937,28 @@
       const btn = document.getElementById('btnSave');
       const cls = document.getElementById('selectKelas').value;
       const tarikh = document.getElementById('inputTarikh').value;
+      const statusHari = document.getElementById('selectStatusHari').value;
       const list = STUDENTS_DATA[cls] || [];
       
       const absentees = [];
-      list.forEach((name, idx) => {
-        const chk = document.getElementById(`absent_${idx}`);
-        if (chk && chk.checked) {
-          const reason = document.getElementById(`reason_${idx}`).value;
-          absentees.push({ nama: name, sebab: reason });
-        }
-      });
+      if (statusHari !== 'Cuti') {
+        list.forEach((name, idx) => {
+          const chk = document.getElementById(`absent_${idx}`);
+          if (chk && chk.checked) {
+            const reason = document.getElementById(`reason_${idx}`).value;
+            absentees.push({ nama: name, sebab: reason });
+          }
+        });
+      }
 
       const payload = {
         action: "submitAttendance",
         tarikh: tarikh,
         kelas: cls,
         enrolmen: list.length,
-        hadir: list.length - absentees.length,
-        absentees: absentees
+        hadir: statusHari === 'Cuti' ? list.length : (list.length - absentees.length),
+        absentees: absentees,
+        statusHari: statusHari
       };
 
       btn.disabled = true;
@@ -772,7 +972,7 @@
           body: JSON.stringify(payload)
         });
         
-        alert(`Kehadiran Kelas ${cls} (${tarikh}) berjaya dihantar ke Google Sheets!`);
+        alert(`Kehadiran Kelas ${cls} (${tarikh} - Status: ${statusHari}) berjaya dihantar ke Google Sheets!`);
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Simpan Kehadiran (Google Sheets)`;
         setTimeout(loadRemoteData, 1500);
@@ -792,6 +992,12 @@
         if (data.lastDbUpdate) {
           lastStudentDbDate = data.lastDbUpdate;
           localStorage.setItem('smkka_last_db_date', data.lastDbUpdate);
+        }
+
+        if (Array.isArray(data.holidays)) {
+          HOLIDAYS_DATA = data.holidays;
+          localStorage.setItem('smkka_holidays_cache', JSON.stringify(HOLIDAYS_DATA));
+          renderHolidaysListUI();
         }
 
         if (data.students && Object.keys(data.students).length > 0) {
@@ -847,12 +1053,18 @@
             if (Array.isArray(lastRecord.absentees)) {
               absList = lastRecord.absentees;
             } else if (typeof lastRecord.absentees === 'string') {
-              try { absList = JSON.parse(lastRecord.absentees); } catch (e) { absList = []; }
+              try { absList = JSON.parse(lastRecord.absentees); } catch(e) { absList = []; }
             }
           }
 
           let absenteesCellHtml = '';
-          if (absList.length > 0) {
+          if (lastRecord.statusHari === 'Cuti') {
+            absenteesCellHtml = `
+              <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-full">
+                <i class="fa-solid fa-umbrella-beach text-[10px]"></i> Hari Cuti Persekolahan
+              </span>
+            `;
+          } else if (absList.length > 0) {
             absenteesCellHtml = `
               <div class="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                 ${absList.map(a => {
@@ -861,7 +1073,8 @@
                   
                   return `
                     <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs">
-                      <span class="font-semibold text-slate-800 leading-tight">• ${a.nama}</span>${isApung ? `
+                      <span class="font-semibold text-slate-800 leading-tight">• ${a.nama}</span>
+                      ${isApung ? `
                         <span class="inline-flex items-center gap-1 text-[10px] bg-amber-50 text-amber-800 border border-amber-300 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">
                           <i class="fa-regular fa-clock text-[9px]"></i> ${proc.display}
                         </span>
@@ -886,8 +1099,9 @@
           tr.innerHTML = `
             <td class="py-3 px-6 font-bold text-slate-800 sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-slate-200 shadow-xs">${cls}</td>
             <td class="py-3 px-6">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Telah Dikemaskini
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${lastRecord.statusHari === 'Cuti' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+                <span class="w-1.5 h-1.5 rounded-full ${lastRecord.statusHari === 'Cuti' ? 'bg-amber-600' : 'bg-emerald-600'}"></span>
+                ${lastRecord.statusHari === 'Cuti' ? 'Cuti Direkodkan' : (lastRecord.statusHari === 'Ganti' ? 'Selesai (Sabtu Ganti)' : 'Telah Dikemaskini')}
               </span>
             </td>
             <td class="py-3 px-6 text-slate-600 font-mono text-xs">${lastRecord.timestamp}</td>
@@ -947,6 +1161,12 @@
       switchPage('pelaporan');
     }
 
+    function getYesterdayDateStr(refDateStr) {
+      const base = refDateStr ? parseDateSafe(refDateStr) : new Date();
+      base.setDate(base.getDate() - 1);
+      return formatDateISO(base);
+    }
+
     function setTimeRange(range) {
       activeRange = range;
       ['yesterday', 'day', 'week', 'month', 'year-2026', 'year-2027'].forEach(r => {
@@ -980,7 +1200,7 @@
     }
 
     // =========================================================================
-    // RENDER RUMUSAN DENGAN PENAPIS YANG TEPAT & KUKUH
+    // RENDER RUMUSAN & PENGIRAAN HARI PERSEKOLAHAN
     // =========================================================================
     function renderRumusan() {
       const inputDate = document.getElementById('inputTarikh').value || new Date().toISOString().split('T')[0];
@@ -993,11 +1213,15 @@
       
       updateRumusanDbDateDisplay();
 
-      // 1. Dapatkan & paparkan data semalam
+      // 1. Data Semalam
       document.getElementById('statYesterdayDateText').innerText = `Tarikh: ${yesterdayStr}`;
       document.getElementById('yesterdayDisplayLabel').innerText = yesterdayStr;
 
-      const yesterdayRecords = attendanceRecords.filter(r => formatDateISO(parseDateSafe(r.tarikh)) === yesterdayStr);
+      const yesterdayRecords = attendanceRecords.filter(r => {
+        const dStr = formatDateISO(parseDateSafe(r.tarikh));
+        return dStr === yesterdayStr && r.statusHari !== 'Cuti' && !findHolidayForDate(dStr);
+      });
+
       let yesterdayAbsentCount = 0;
       const yesterdayAbsenteesList = [];
 
@@ -1026,7 +1250,7 @@
       const tbodyYesterday = document.getElementById('tableYesterdayAbsent');
       tbodyYesterday.innerHTML = '';
       if (yesterdayAbsenteesList.length === 0) {
-        tbodyYesterday.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran direkodkan semalam.</td></tr>`;
+        tbodyYesterday.innerHTML = `<tr><td colspan="3" class="text-center py-5 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran direkodkan semalam (atau semalam cuti).</td></tr>`;
       } else {
         yesterdayAbsenteesList.forEach(item => {
           const tr = document.createElement('tr');
@@ -1050,7 +1274,18 @@
         });
       }
 
-      // 2. Tentukan Label Sela Terpilih Sebelum Tapis
+      // 2. Sela Minggu (Isnin hingga Sabtu)
+      const dayOfWeek = refDate.getDay();
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const mondayDate = new Date(refDate);
+      mondayDate.setDate(refDate.getDate() + diffToMonday);
+      const saturdayDate = new Date(mondayDate);
+      saturdayDate.setDate(mondayDate.getDate() + 5);
+
+      const mondayStr = formatDateISO(mondayDate);
+      const saturdayStr = formatDateISO(saturdayDate);
+
+      // 3. Label Sela Masa
       let rangeLabel = "Hari Ini";
       if (activeRange === 'yesterday') {
         rangeLabel = `Semalam (${yesterdayStr})`;
@@ -1059,7 +1294,7 @@
       } else if (activeRange === 'custom') {
         rangeLabel = `Tarikh Pilihan (${customSelectedDate})`;
       } else if (activeRange === 'week') {
-        rangeLabel = `7 Hari Terakhir`;
+        rangeLabel = `Minggu Ini (${mondayStr} hingga ${saturdayStr})`;
       } else if (activeRange === 'month') {
         const bulanNama = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
         rangeLabel = `Bulan ${bulanNama[refDate.getMonth()]} ${refDate.getFullYear()}`;
@@ -1073,11 +1308,23 @@
       document.getElementById('headingSelectedRange').innerText = rangeLabel;
       document.getElementById('subtextSelectedRange').innerText = `Menunjukkan senarai murid tidak hadir untuk sela masa: ${rangeLabel}`;
 
-      // 3. Tapis Rekod Menggunakan Normalizer Tarikh
+      // 4. Penapisan Rekod:
+      // Syarat Hari Persekolahan:
+      // (a) Bukan Cuti Ad-Hoc di borang pelaporan (`statusHari !== 'Cuti'`)
+      // (b) Bukan di dalam senarai cuti pukal Admin (`!findHolidayForDate(rDateStr)`)
+      // (c) Jika hari Sabtu (day===6), HANYA dikira jika `statusHari === 'Ganti'`
+      // (d) Jika Isnin - Jumaat (day 1-5), dikira hari sekolah selagi bukan cuti
       const filtered = attendanceRecords.filter(r => {
         const rDate = parseDateSafe(r.tarikh);
         if (!rDate) return false;
         const rDateStr = formatDateISO(rDate);
+        const day = rDate.getDay();
+
+        const isHoliday = (r.statusHari === 'Cuti') || !!findHolidayForDate(rDateStr);
+        if (isHoliday) return false;
+
+        const isSchoolDay = (r.statusHari === 'Ganti') || (day >= 1 && day <= 5);
+        if (!isSchoolDay) return false;
 
         if (activeRange === 'yesterday') {
           return rDateStr === yesterdayStr;
@@ -1086,8 +1333,7 @@
         } else if (activeRange === 'custom') {
           return rDateStr === customSelectedDate;
         } else if (activeRange === 'week') {
-          const diffDays = Math.floor((refDate.getTime() - rDate.getTime()) / (1000 * 3600 * 24));
-          return diffDays >= 0 && diffDays <= 7;
+          return rDateStr >= mondayStr && rDateStr <= saturdayStr;
         } else if (activeRange === 'month') {
           return rDate.getMonth() === refDate.getMonth() && rDate.getFullYear() === refDate.getFullYear();
         } else if (activeRange === 'year-2026') {
@@ -1098,7 +1344,23 @@
         return true;
       });
 
-      // 4. Proses Rekod Yang Berjaya Ditapis
+      // 5. Bilangan Hari Persekolahan Unik
+      const uniqueSchoolDates = new Set();
+      let gantiCount = 0;
+
+      filtered.forEach(r => {
+        const dStr = formatDateISO(parseDateSafe(r.tarikh));
+        if (dStr && !uniqueSchoolDates.has(dStr)) {
+          uniqueSchoolDates.add(dStr);
+          if (r.statusHari === 'Ganti') gantiCount++;
+        }
+      });
+
+      const schoolDaysTotal = uniqueSchoolDates.size;
+      document.getElementById('statSchoolDaysCount').innerText = `${schoolDaysTotal} Hari`;
+      document.getElementById('statSchoolDaysSubtext').innerText = gantiCount > 0 ? `Termasuk ${gantiCount} hari Sabtu ganti` : `Hari persekolahan selesai`;
+
+      // 6. Analisis Ketidakhadiran
       let totalAbsentCount = 0;
       let totalHadirSum = 0;
       let totalEnrolSum = 0;
@@ -1139,7 +1401,7 @@
       const avgPct = totalEnrolSum > 0 ? ((totalHadirSum / totalEnrolSum) * 100).toFixed(1) : (filtered.length > 0 ? '100' : '0.0');
       document.getElementById('statAvgAttendance').innerText = `${avgPct}%`;
 
-      // 5. Kemaskini Jadual Murid Tidak Hadir Sela Terpilih
+      // 7. Jadual Senarai Murid Tidak Hadir
       const detailTbody = document.getElementById('tableAbsentByClass');
       detailTbody.innerHTML = '';
 
@@ -1155,11 +1417,11 @@
             <td class="py-2.5 px-6 font-semibold text-slate-700">${row.nama}</td>
             <td class="py-2.5 px-6">
               ${row.isApung ? `
-                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded text-xs font-semibold">
+                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded text-xs font-semibold">
                   <i class="fa-regular fa-clock text-[10px]"></i> ${row.sebabDisplay}
                 </span>
               ` : `
-                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-xs font-medium">
+                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded text-xs font-medium">
                   ${row.sebabDisplay}
                 </span>
               `}
@@ -1169,7 +1431,7 @@
         });
       }
 
-      // 6. Kekerapan Ponteng / Kerap Cuti
+      // 8. Kekerapan Tidak Hadir
       const frequentListEl = document.getElementById('listFrequentAbsent');
       frequentListEl.innerHTML = '';
       const sortedAbsent = Object.entries(absentFreqMap).sort((a, b) => b[1] - a[1]);
@@ -1195,7 +1457,7 @@
         });
       }
 
-      // 7. Senarai 100% Hadir
+      // 9. Anugerah 100% Hadir
       const diligentListEl = document.getElementById('listDiligentStudents');
       diligentListEl.innerHTML = '';
       let diligentCount = 0;
@@ -1229,7 +1491,219 @@
     }
 
     // =========================================================================
-    // LOGIK ADMIN: PENGESAHAN KESELAMATAN BERASASKAN GOOGLE APPS SCRIPT
+    // LOGIK ADMIN: PENGURUSAN CUTI PUKAL (BAHAGIAN 1 ADMIN)
+    // =========================================================================
+    function toggleHolidayInputMode() {
+      const mode = document.querySelector('input[name="radioJenisCuti"]:checked').value;
+      const singleWrap = document.getElementById('wrapperSingleDate');
+      const startWrap = document.getElementById('wrapperRangeStart');
+      const endWrap = document.getElementById('wrapperRangeEnd');
+      const previewBox = document.getElementById('holidayDurationPreview');
+
+      if (mode === 'sehari') {
+        singleWrap.classList.remove('hidden');
+        startWrap.classList.add('hidden');
+        endWrap.classList.add('hidden');
+        previewBox.classList.add('hidden');
+      } else {
+        singleWrap.classList.add('hidden');
+        startWrap.classList.remove('hidden');
+        endWrap.classList.remove('hidden');
+        previewBox.classList.remove('hidden');
+        calcHolidayDuration();
+      }
+    }
+
+    function calcHolidayDuration() {
+      const startVal = document.getElementById('inputHolidayStartDate').value;
+      const endVal = document.getElementById('inputHolidayEndDate').value;
+      const textEl = document.getElementById('holidayDurationText');
+
+      if (!startVal || !endVal) {
+        textEl.innerText = "Sila pilih tarikh mula dan akhir";
+        return;
+      }
+
+      const s = parseDateSafe(startVal);
+      const e = parseDateSafe(endVal);
+
+      if (s && e) {
+        if (e < s) {
+          textEl.innerText = "Ralat: Tarikh akhir mestilah selepas tarikh mula!";
+          return;
+        }
+        const diffDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        textEl.innerText = `Tempoh: ${diffDays} hari cuti (${startVal} hingga ${endVal})`;
+      }
+    }
+
+    function generateDatesBetween(startStr, endStr) {
+      const dates = [];
+      let curr = parseDateSafe(startStr);
+      const end = parseDateSafe(endStr);
+      if (!curr || !end) return dates;
+      while (curr <= end) {
+        dates.push(formatDateISO(curr));
+        curr.setDate(curr.getDate() + 1);
+      }
+      return dates;
+    }
+
+    async function saveNewHoliday() {
+      const mode = document.querySelector('input[name="radioJenisCuti"]:checked').value;
+      const name = document.getElementById('inputHolidayName').value.trim();
+      const btn = document.getElementById('btnAddHoliday');
+
+      if (!name) {
+        alert("Sila masukkan nama atau keterangan cuti.");
+        document.getElementById('inputHolidayName').focus();
+        return;
+      }
+
+      let startDate = '';
+      let endDate = '';
+      let daysCount = 1;
+      let dateList = [];
+
+      if (mode === 'sehari') {
+        startDate = document.getElementById('inputHolidaySingleDate').value;
+        endDate = startDate;
+        if (!startDate) {
+          alert("Sila pilih tarikh cuti.");
+          return;
+        }
+        dateList = [startDate];
+        daysCount = 1;
+      } else {
+        startDate = document.getElementById('inputHolidayStartDate').value;
+        endDate = document.getElementById('inputHolidayEndDate').value;
+        if (!startDate || !endDate) {
+          alert("Sila lengkapkan tarikh mula dan tarikh akhir cuti.");
+          return;
+        }
+        if (endDate < startDate) {
+          alert("Tarikh akhir mestilah selepas tarikh mula.");
+          return;
+        }
+        dateList = generateDatesBetween(startDate, endDate);
+        daysCount = dateList.length;
+      }
+
+      const newHolidayObj = {
+        id: "CUTI_" + Date.now(),
+        nama: name,
+        jenis: mode === 'sehari' ? 'Sehari' : 'Penggal/Semester',
+        mula: startDate,
+        akhir: endDate,
+        bilHari: daysCount,
+        dates: dateList
+      };
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+
+      try {
+        const payload = {
+          action: "addHoliday",
+          password: sessionAdminPassword,
+          holiday: newHolidayObj
+        };
+
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const resData = await res.json();
+
+        if (resData.status === "success") {
+          HOLIDAYS_DATA = resData.holidays || [...HOLIDAYS_DATA, newHolidayObj];
+          localStorage.setItem('smkka_holidays_cache', JSON.stringify(HOLIDAYS_DATA));
+          renderHolidaysListUI();
+          alert(`Cuti "${name}" (${daysCount} hari) berjaya disimpan ke dalam sistem!`);
+          document.getElementById('inputHolidayName').value = '';
+          document.getElementById('inputHolidaySingleDate').value = '';
+          document.getElementById('inputHolidayStartDate').value = '';
+          document.getElementById('inputHolidayEndDate').value = '';
+          onTarikhChange();
+        } else {
+          alert("Gagal menyimpan cuti: " + resData.message);
+        }
+      } catch (e) {
+        alert("Ralat sambungan: " + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Cuti ke Google Sheets`;
+      }
+    }
+
+    async function deleteHoliday(id, nama) {
+      if (!confirm(`Adakah anda pasti mahu memadam cuti "${nama}" daripada takwim?`)) return;
+
+      try {
+        const payload = {
+          action: "deleteHoliday",
+          password: sessionAdminPassword,
+          id: id
+        };
+
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const resData = await res.json();
+
+        if (resData.status === "success") {
+          HOLIDAYS_DATA = resData.holidays || HOLIDAYS_DATA.filter(h => h.id !== id);
+          localStorage.setItem('smkka_holidays_cache', JSON.stringify(HOLIDAYS_DATA));
+          renderHolidaysListUI();
+          alert(`Cuti "${nama}" berjaya dipadam.`);
+          onTarikhChange();
+        } else {
+          alert("Gagal memadam cuti: " + resData.message);
+        }
+      } catch (e) {
+        alert("Ralat sambungan: " + e.message);
+      }
+    }
+
+    function renderHolidaysListUI() {
+      const container = document.getElementById('holidaysListContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!HOLIDAYS_DATA || HOLIDAYS_DATA.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 italic">Tiada cuti pukal didaftarkan lagi.</div>`;
+        return;
+      }
+
+      HOLIDAYS_DATA.forEach(h => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between p-3.5 hover:bg-slate-50 transition";
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg ${h.jenis === 'Sehari' ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'} flex items-center justify-center font-bold text-xs flex-shrink-0">
+              <i class="fa-solid ${h.jenis === 'Sehari' ? 'fa-calendar-day' : 'fa-calendar-week'}"></i>
+            </span>
+            <div>
+              <p class="text-xs font-bold text-slate-800">${h.nama}</p>
+              <p class="text-[11px] text-slate-500 font-medium">
+                ${h.mula === h.akhir ? h.mula : `${h.mula} hingga${h.akhir}`} 
+                <span class="font-bold text-indigo-700">(${h.bilHari} Hari)</span>
+              </p>
+            </div>
+          </div>
+          <button onclick="deleteHoliday('${h.id}', '${h.nama}')" class="text-xs text-rose-600 hover:text-rose-800 font-bold px-2.5 py-1 rounded-lg hover:bg-rose-50 transition flex items-center gap-1">
+            <i class="fa-solid fa-trash text-[11px]"></i> Padam
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // =========================================================================
+    // LOGIK ADMIN: PENGESAHAN KATA LALUAN & KEMASKINI ENROLMEN EXCEL
     // =========================================================================
     async function verifyAdminPassword() {
       const inputEl = document.getElementById('adminPasswordInput');
@@ -1265,6 +1739,7 @@
           document.getElementById('adminPanelBox').classList.remove('hidden');
           inputEl.value = '';
           renderFloatingContainer();
+          renderHolidaysListUI();
         } else {
           alert("Kata laluan tidak sah! Sila cuba lagi.");
           inputEl.value = '';
