@@ -221,8 +221,8 @@
             <p class="text-xs text-slate-500">Pilih sela masa atau pilih tarikh spesifik untuk melihat statistik ketidakhadiran.</p>
           </div>
 
-          <!-- KAD JUMLAH MURID SMKKA & DI BAWAHNYA TARIKH DATABASE TERKINI -->
-          <div class="bg-gradient-to-br from-blue-50/90 to-indigo-50/60 border border-blue-200 rounded-xl p-3.5 min-w-[230px] shadow-2xs">
+          <!-- KAD JUMLAH MURID SMKKA & TARIKH KEMASKINI EXCEL APDM OLEH ADMIN -->
+          <div class="bg-gradient-to-br from-blue-50/90 to-indigo-50/60 border border-blue-200 rounded-xl p-3.5 min-w-[240px] shadow-2xs">
             <div class="flex items-center justify-between gap-3">
               <div>
                 <p class="text-[11px] font-bold text-slate-500 uppercase flex items-center gap-1.5">
@@ -236,7 +236,7 @@
             </div>
             <div class="mt-2 pt-1.5 border-t border-blue-200/70 flex items-center justify-between text-[11px]">
               <span class="text-slate-500 font-semibold flex items-center gap-1">
-                <i class="fa-regular fa-calendar-check text-emerald-600"></i> Database Terkini:
+                <i class="fa-solid fa-file-excel text-emerald-600"></i> Kemaskini Fail APDM:
               </span>
               <span class="font-mono font-bold text-emerald-700" id="rumusanLatestDate">--</span>
             </div>
@@ -493,14 +493,17 @@
       "4S3": ["AIDIL PUTRA BIN ABDULLAH","AMIRUL HAKIMI BIN AZIZI","FARAH NATASHA BINTI AHMAD","HAZWAN BIN JAMALUDDIN","LUQMAN NUR HAKIM BIN ROSLAN","MOHAMAD FAIZ BIN SAID","MUHAMMAD FARHAN BIN MOHD YAZID","MUHAMMAD HARITH BIN AZLAN","NUR DAMIA BINTI KASMIDON","NUR IZZATI BINTI MOHD RAZIF","NURUL AINA BINTI SHAHRIL","PUTERA IRFAN BIN KASMIDON","ZULHILMI BIN ZAINAL"],
       "5S1": ["AFIQAH BATRISYIA BINTI MOHD FAIZAL","CHUA JUN HAO","DANISH IRFAN BIN MOHD ZAKI","FARAH DIANA BINTI MOHD RAZIF","LEE JIA HUI","MUHAMMAD AMIRUL AMIN BIN AZMAN","NUR ATHIRAH BINTI ROSLAN","SITI ZULAIKHA BINTI ROZAIDI","TAN JIA WEI"],
       "5S2": ["AHMAD HAZIM BIN ROSLAN","ALIA NATASHA BINTI SUHAIMI","DANIAL FARHAN BIN KAMARUDIN","FATIN ATHIRAH BINTI MOHD FAUZI","IRFAN HAKIMI BIN AZIZI","KHAIRUL ANUAR BIN ZULKIFLI","MOHAMAD DANISH BIN ROSTAM","MUHAMMAD AIDIL BIN MOHD HARIS","MUHAMMAD AIMAN BIN AZHAR","MUHAMMAD FAKHRUL RADZI BIN ROZAIDI","MUHAMMAD HARIZ BIN HAMDAN","NUR AINA MAISARAH BINTI MOHD YUSOF","NUR DAMIA FITRIYAH BINTI ROSLI","NUR FATIHAH BINTI ISMAIL","NUR SYAZANA BINTI AZMAN","NURUL HUDA BINTI ABDULLAH","SITI NOR AISHAH BINTI MOHD ISA","SYED FARIS BIN SYED OTHMAN","WAN HAZIQAH BINTI WAN AHMAD"],
-      "5S3": ["ADAM LUQMAN BIN ABDULLAH","AMIRA BALQIS BINTI AHMAD","FAUZAN BIN JAMALUDDIN","HAIKAL BIN MOHD YAZID","MOHAMAD ZULKIFLI BIN SAID","MUHAMMAD ARIF BIN ROSLAN","MUHAMMAD IRFAN BIN AZLAN","NUR AIN分野 BINTI KASMIDON","NUR SHAHIRA BINTI MOHD RAZIF","NURUL NADIA BINTI SHAHRIL","PUTERA AMIRUL BIN KASMIDON","ZAINAL ABIDIN BIN ZAINAL"]
+      "5S3": ["ADAM LUQMAN BIN ABDULLAH","AMIRA BALQIS BINTI AHMAD","FAUZAN BIN JAMALUDDIN","HAIKAL BIN MOHD YAZID","MOHAMAD ZULKIFLI BIN SAID","MUHAMMAD ARIF BIN ROSLAN","MUHAMMAD IRFAN BIN AZLAN","NUR AIN SYAFIQAH BINTI KASMIDON","NUR SHAHIRA BINTI MOHD RAZIF","NURUL NADIA BINTI SHAHRIL","PUTERA AMIRUL BIN KASMIDON","ZAINAL ABIDIN BIN ZAINAL"]
     };
 
     let attendanceRecords = [];
     let activeRange = 'day';
     let customSelectedDate = '';
     
-    // Pembolehubah Sesi Admin (disimpan dalam memori sementara tanpa mendedahkan teks katalaluan)
+    // Pembolehubah Tarikh Kemaskini Fail Excel APDM
+    let lastStudentDbDate = localStorage.getItem('smkka_last_db_date') || '';
+
+    // Pembolehubah Sesi Admin
     let sessionAdminPassword = '';
     let newlyExtractedData = null;
     let missingStudentsList = [];
@@ -509,6 +512,7 @@
       initClock();
       initDefaultDate();
       loadLocalOrRemoteStudents();
+      updateRumusanDbDateDisplay();
       loadRemoteData();
     };
 
@@ -524,6 +528,20 @@
       document.getElementById('inputTarikh').value = today;
       document.getElementById('filterCustomDate').value = today;
       customSelectedDate = today;
+    }
+
+    // Kemaskini paparan kad jumlah murid dan tarikh kemaskini fail APDM
+    function updateRumusanDbDateDisplay() {
+      let totalStudentsSchoolRumusan = 0;
+      Object.keys(STUDENTS_DATA).forEach(cls => totalStudentsSchoolRumusan += STUDENTS_DATA[cls].length);
+      const rumusanTotalEl = document.getElementById('rumusanTotalStudents');
+      if (rumusanTotalEl) rumusanTotalEl.innerText = totalStudentsSchoolRumusan;
+
+      const rumusanLatestDateEl = document.getElementById('rumusanLatestDate');
+      if (rumusanLatestDateEl) {
+        const savedDate = lastStudentDbDate || localStorage.getItem('smkka_last_db_date');
+        rumusanLatestDateEl.innerText = savedDate || '--';
+      }
     }
 
     // Fungsi Pengesanan Status & Pengiraan 48 Jam Bagi Sebab 'Apung'
@@ -578,6 +596,7 @@
         try { STUDENTS_DATA = JSON.parse(cached); } catch(e) {}
       }
       populateClassSelect();
+      updateRumusanDbDateDisplay();
     }
 
     function populateClassSelect() {
@@ -612,7 +631,6 @@
       if (pageId === 'admin') renderFloatingContainer();
     }
 
-    // Memaparkan Senarai Murid dalam Borang Pelaporan
     function renderStudentList() {
       const cls = document.getElementById('selectKelas').value;
       const tarikh = document.getElementById('inputTarikh').value;
@@ -739,6 +757,12 @@
         const res = await fetch(GAS_API_URL);
         const data = await res.json();
         
+        // Simpan tarikh kemaskini Excel dari server jika ada
+        if (data.lastDbUpdate) {
+          lastStudentDbDate = data.lastDbUpdate;
+          localStorage.setItem('smkka_last_db_date', data.lastDbUpdate);
+        }
+
         if (data.students && Object.keys(data.students).length > 0) {
           STUDENTS_DATA = data.students;
           localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
@@ -750,6 +774,8 @@
           renderDashboard();
           renderRumusan();
         }
+
+        updateRumusanDbDateDisplay();
       } catch (e) {
         console.warn("Gagal menghubungi Google Apps Script API:", e);
       }
@@ -790,7 +816,7 @@
             if (Array.isArray(lastRecord.absentees)) {
               absList = lastRecord.absentees;
             } else if (typeof lastRecord.absentees === 'string') {
-              try { absList = JSON.parse(absList); } catch (e) { absList = []; }
+              try { absList = JSON.parse(absList); } catch(e) { absList = []; }
             }
           }
 
@@ -935,21 +961,7 @@
       const inputDate = document.getElementById('inputTarikh').value || new Date().toISOString().split('T')[0];
       const yesterdayStr = getYesterdayDateStr(inputDate);
       
-      // Kemaskini Kad Jumlah Murid SMKKA & Tarikh Database Terkini pada Kad Penapis
-      let totalStudentsSchoolRumusan = 0;
-      Object.keys(STUDENTS_DATA).forEach(cls => totalStudentsSchoolRumusan += STUDENTS_DATA[cls].length);
-      const rumusanTotalEl = document.getElementById('rumusanTotalStudents');
-      if (rumusanTotalEl) rumusanTotalEl.innerText = totalStudentsSchoolRumusan;
-
-      const rumusanLatestDateEl = document.getElementById('rumusanLatestDate');
-      if (rumusanLatestDateEl) {
-        if (attendanceRecords && attendanceRecords.length > 0) {
-          const sortedRecs = [...attendanceRecords].sort((a, b) => new Date(b.tarikh || b.timestamp) - new Date(a.tarikh || a.timestamp));
-          rumusanLatestDateEl.innerText = sortedRecs[0].tarikh || (sortedRecs[0].timestamp ? sortedRecs[0].timestamp.split(' ')[0] : '--');
-        } else {
-          rumusanLatestDateEl.innerText = 'Tiada Rekod';
-        }
-      }
+      updateRumusanDbDateDisplay();
 
       document.getElementById('statYesterdayDateText').innerText = `Tarikh: ${yesterdayStr}`;
       document.getElementById('yesterdayDisplayLabel').innerText = yesterdayStr;
@@ -1147,11 +1159,11 @@
             <td class="py-2.5 px-6 font-semibold text-slate-700">${row.nama}</td>
             <td class="py-2.5 px-6">
               ${row.isApung ? `
-                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded text-xs font-semibold">
+                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded text-xs font-semibold">
                   <i class="fa-regular fa-clock text-[10px]"></i> ${row.sebabDisplay}
                 </span>
               ` : `
-                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded text-xs font-medium">
+                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-xs font-medium">
                   ${row.sebabDisplay}
                 </span>
               `}
@@ -1392,6 +1404,8 @@
         }
       });
 
+      const todayStr = new Date().toISOString().split('T')[0];
+
       const payload = {
         action: "updateStudents",
         password: sessionAdminPassword,
@@ -1409,12 +1423,18 @@
 
         STUDENTS_DATA = finalStudentsData;
         localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
+
+        // KEMASKINI TARIKH DATABASE EXCEL KE TARIKH HARI INI
+        lastStudentDbDate = todayStr;
+        localStorage.setItem('smkka_last_db_date', todayStr);
+        updateRumusanDbDateDisplay();
+
         populateClassSelect();
 
         alert(`Senarai murid berjaya disimpan! ${archivedToPurge.length} murid telah disahkan keluar/dihapuskan.`);
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Sahkan & Simpan ke Google Sheets`;
-        switchPage('pelaporan');
+        switchPage('rumusan');
       } catch (e) {
         alert("Ralat mengemaskini ke Google Sheets: " + e.message);
         btn.disabled = false;
