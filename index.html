@@ -94,7 +94,7 @@
               <input type="date" id="inputTarikh" onchange="onTarikhChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
             </div>
 
-            <!-- RUANG STATUS HARI PERSEKOLAHAN (CARA 1: AD-HOC CUTI DIISYTIHAR DI SINI) -->
+            <!-- RUANG STATUS HARI PERSEKOLAHAN -->
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Status Hari Persekolahan</label>
               <select id="selectStatusHari" onchange="onStatusHariChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
@@ -126,7 +126,7 @@
             </div>
           </div>
 
-          <!-- NOTIS CUTI JIKA HARI INI CUTI -->
+          <!-- NOTIS CUTI JIKA DIPILIH -->
           <div id="cutiNoticeBanner" class="hidden p-4 bg-amber-50 border border-amber-300 rounded-2xl flex items-center gap-3 text-amber-900 text-xs sm:text-sm font-semibold shadow-xs">
             <div class="w-10 h-10 rounded-xl bg-amber-200 flex items-center justify-center text-amber-800 flex-shrink-0 text-xl">
               <i class="fa-solid fa-umbrella-beach"></i>
@@ -159,7 +159,7 @@
       </div>
     </section>
 
-    <!-- ==================== PAGE 2: DASHBOARD ==================== -->
+    <!-- ==================== PAGE 2: DASHBOARD (STATISTIK HARI INI BERDASARKAN TARIKH SEMASA) ==================== -->
     <section id="page-dashboard" class="hidden space-y-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -204,7 +204,9 @@
         <div class="px-6 py-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-4">
           <div>
             <h3 class="font-bold text-slate-800 text-lg">Status Kemaskini Kelas Hari Ini</h3>
-            <p class="text-xs text-slate-500">Memaparkan status terkini, nisbah hadir per enrolmen, senarai murid tidak hadir berserta alasan, dan masa rekod.</p>
+            <p class="text-xs text-slate-500">
+              Memaparkan status terkini bagi tarikh semasa: <span id="dashTodayDateLabel" class="font-mono font-bold text-blue-900">--</span>, nisbah hadir per enrolmen, dan senarai murid tidak hadir.
+            </p>
           </div>
           <button onclick="loadRemoteData()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
             <i class="fa-solid fa-arrows-rotate"></i> Muat Semula Data
@@ -237,10 +239,10 @@
         <div class="flex flex-wrap justify-between items-center gap-4">
           <div>
             <h3 class="font-bold text-lg text-slate-800">Penapis Rumusan & Statistik Kehadiran</h3>
-            <p class="text-xs text-slate-500">Pilih sela masa atau pilih tarikh spesifik untuk melihat statistik ketidakhadiran.</p>
+            <p class="text-xs text-slate-500">Pilih sela masa atau tarikh pilihan untuk melihat analisis kehadiran dan ketidakhadiran.</p>
           </div>
 
-          <!-- KAD JUMLAH MURID SMKKA & TARIKH KEMASKINI EXCEL APDM OLEH ADMIN -->
+          <!-- KAD JUMLAH MURID SMKKA & TARIKH KEMASKINI EXCEL APDM -->
           <div class="bg-gradient-to-br from-blue-50/90 to-indigo-50/60 border border-blue-200 rounded-xl p-3.5 min-w-[240px] shadow-2xs">
             <div class="flex items-center justify-between gap-3">
               <div>
@@ -384,7 +386,7 @@
             </div>
             <div>
               <h4 class="font-bold text-slate-800 text-sm">Senarai Ketidakhadiran Semalam (<span id="yesterdayDisplayLabel">--</span>)</h4>
-              <p class="text-xs text-slate-500">Rekod lengkap murid tidak hadir pada hari sebelumnya.</p>
+              <p class="text-xs text-slate-500">Rekod lengkap murid tidak hadir pada hari semalam.</p>
             </div>
           </div>
           <span class="bg-amber-200/70 text-amber-900 font-extrabold text-xs px-3 py-1 rounded-full" id="yesterdayTotalBadge">0 Murid</span>
@@ -426,7 +428,7 @@
 
       <div id="adminPanelBox" class="hidden space-y-6">
 
-        <!-- BAHAGIAN 1: PENGURUSAN TAKWIM CUTI PERSEKOLAHAN (CARA 2: PUKAL / CUTI PENGGAL / CUTI UMUM) -->
+        <!-- BAHAGIAN 1: PENGURUSAN TAKWIM CUTI PERSEKOLAHAN -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
           <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-4">
             <div>
@@ -603,7 +605,7 @@
     let activeRange = 'day';
     let customSelectedDate = '';
     
-    // Senarai Cuti Pukal (Diselaraskan dari Google Sheets)
+    // Senarai Cuti Pukal
     let HOLIDAYS_DATA = [];
 
     let lastStudentDbDate = localStorage.getItem('smkka_last_db_date') || '';
@@ -627,8 +629,27 @@
       document.getElementById('autoClock').innerText = new Date().toLocaleTimeString('ms-MY', { hour12: false });
     }
 
+    // Mengambil tarikh kalendar semasa sebenar (YYYY-MM-DD tempatan)
+    function getActualTodayISO() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    // Mengambil tarikh semalam sebenar berasaskan hari ini
+    function getActualYesterdayISO() {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
     function initDefaultDate() {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getActualTodayISO();
       document.getElementById('inputTarikh').value = today;
       document.getElementById('filterCustomDate').value = today;
       customSelectedDate = today;
@@ -645,9 +666,7 @@
       }
     }
 
-    // =========================================================================
-    // FUNGSI RAWATAN TARIKH & PENGESANAN CUTI
-    // =========================================================================
+    // Helper penukaran tarikh selamat
     function parseDateSafe(val) {
       if (!val) return null;
       if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
@@ -673,7 +692,6 @@
       return `${y}-${m}-${day}`;
     }
 
-    // Semak sama ada sesuatu tarikh jatuh dalam cuti pukal berdaftar
     function findHolidayForDate(dateStr) {
       if (!dateStr || !HOLIDAYS_DATA || HOLIDAYS_DATA.length === 0) return null;
       for (let h of HOLIDAYS_DATA) {
@@ -687,7 +705,7 @@
       return null;
     }
 
-    // Apabila tarikh diubah di Borang Pelaporan
+    // Pada Borang Pelaporan: Menyemak tarikh yang dipilih pengguna
     function onTarikhChange() {
       const val = document.getElementById('inputTarikh').value;
       const d = parseDateSafe(val);
@@ -699,7 +717,6 @@
       const matchedHoliday = findHolidayForDate(val);
 
       if (matchedHoliday) {
-        // Cuti Pukal Dikesan Secara Automatik
         statusSelect.value = "Cuti";
         bannerTitle.innerText = `Hari Ini Cuti Berdaftar: ${matchedHoliday.nama}`;
         bannerDesc.innerText = `Tempoh: ${matchedHoliday.mula} hingga ${matchedHoliday.akhir} (${matchedHoliday.bilHari} hari). Tiada kehadiran diambil.`;
@@ -1018,8 +1035,16 @@
       }
     }
 
+    // =========================================================================
+    // RENDER DASHBOARD: SENTIASA MENGGUNAKAN TARIKH SEMASA (BUKAN INPUT PELAPORAN)
+    // =========================================================================
     function renderDashboard() {
-      const today = document.getElementById('inputTarikh').value || new Date().toISOString().split('T')[0];
+      // Menggunakan tarikh kalendar semasa sebenar (Today)
+      const actualToday = getActualTodayISO();
+      
+      const labelEl = document.getElementById('dashTodayDateLabel');
+      if (labelEl) labelEl.innerText = actualToday;
+
       const tbody = document.getElementById('dashTableBody');
       tbody.innerHTML = '';
 
@@ -1033,7 +1058,8 @@
       document.getElementById('dashTotalStudents').innerText = totalStudentsSchool;
 
       classes.forEach(cls => {
-        const classRecordsToday = attendanceRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === today);
+        // Tapis rekod kelas khusus bagi TARIKH SEMASA SEBENAR (actualToday)
+        const classRecordsToday = attendanceRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === actualToday);
         const lastRecord = classRecordsToday.length > 0 ? classRecordsToday[classRecordsToday.length - 1] : null;
         const tr = document.createElement('tr');
         tr.className = "group hover:bg-slate-50/80 transition";
@@ -1053,7 +1079,7 @@
             if (Array.isArray(lastRecord.absentees)) {
               absList = lastRecord.absentees;
             } else if (typeof lastRecord.absentees === 'string') {
-              try { absList = JSON.parse(lastRecord.absentees); } catch(e) { absList = []; }
+              try { absList = JSON.parse(lastRecord.absentees); } catch (e) { absList = []; }
             }
           }
 
@@ -1129,7 +1155,7 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Belum Selesai
               </span>
             </td>
-            <td class="py-3 px-6 text-slate-400 text-xs italic">Tiada Rekod</td>
+            <td class="py-3 px-6 text-slate-400 text-xs italic">Tiada Rekod Hari Ini</td>
             <td class="py-3 px-6 text-slate-400">- / ${STUDENTS_DATA[cls].length} Murid</td>
             <td class="py-3 px-6 text-slate-400 text-xs italic">-</td>
             <td class="py-3 px-6 text-slate-400">-</td>
@@ -1145,7 +1171,7 @@
       document.getElementById('dashTotalAbsentToday').innerText = totalAbsentToday;
       if (completedCount > 0) {
         const auditedEnrol = classes.reduce((sum, c) => {
-          const rec = attendanceRecords.filter(r => r.kelas === c && formatDateISO(parseDateSafe(r.tarikh)) === today);
+          const rec = attendanceRecords.filter(r => r.kelas === c && formatDateISO(parseDateSafe(r.tarikh)) === actualToday);
           return rec.length > 0 ? sum + STUDENTS_DATA[c].length : sum;
         }, 0);
         const overallPct = auditedEnrol > 0 ? ((totalPresentToday / auditedEnrol) * 100).toFixed(1) : 0;
@@ -1159,12 +1185,6 @@
       document.getElementById('selectKelas').value = cls;
       renderStudentList();
       switchPage('pelaporan');
-    }
-
-    function getYesterdayDateStr(refDateStr) {
-      const base = refDateStr ? parseDateSafe(refDateStr) : new Date();
-      base.setDate(base.getDate() - 1);
-      return formatDateISO(base);
     }
 
     function setTimeRange(range) {
@@ -1200,26 +1220,23 @@
     }
 
     // =========================================================================
-    // RENDER RUMUSAN & PENGIRAAN HARI PERSEKOLAHAN
+    // RENDER RUMUSAN: "HARI INI", "SEMALAM", & "MINGGU INI" BERASASKAN TARIKH SEMASA
     // =========================================================================
     function renderRumusan() {
-      const inputDate = document.getElementById('inputTarikh').value || new Date().toISOString().split('T')[0];
-      const refDate = parseDateSafe(inputDate) || new Date();
-      const refDateStr = formatDateISO(refDate);
-
-      const yestDate = new Date(refDate);
-      yestDate.setDate(yestDate.getDate() - 1);
-      const yesterdayStr = formatDateISO(yestDate);
+      // Tarikh rujukan adalah TARIKH SEMASA SEBENAR (Bukan dari input borang pelaporan)
+      const actualTodayStr = getActualTodayISO();
+      const actualTodayDate = parseDateSafe(actualTodayStr) || new Date();
+      const actualYesterdayStr = getActualYesterdayISO();
       
       updateRumusanDbDateDisplay();
 
-      // 1. Data Semalam
-      document.getElementById('statYesterdayDateText').innerText = `Tarikh: ${yesterdayStr}`;
-      document.getElementById('yesterdayDisplayLabel').innerText = yesterdayStr;
+      // 1. Data Ketidakhadiran Semalam (berasaskan hari semalam sebenar)
+      document.getElementById('statYesterdayDateText').innerText = `Tarikh: ${actualYesterdayStr}`;
+      document.getElementById('yesterdayDisplayLabel').innerText = actualYesterdayStr;
 
       const yesterdayRecords = attendanceRecords.filter(r => {
         const dStr = formatDateISO(parseDateSafe(r.tarikh));
-        return dStr === yesterdayStr && r.statusHari !== 'Cuti' && !findHolidayForDate(dStr);
+        return dStr === actualYesterdayStr && r.statusHari !== 'Cuti' && !findHolidayForDate(dStr);
       });
 
       let yesterdayAbsentCount = 0;
@@ -1274,11 +1291,11 @@
         });
       }
 
-      // 2. Sela Minggu (Isnin hingga Sabtu)
-      const dayOfWeek = refDate.getDay();
+      // 2. Kiraan Sela Minggu Semasa (Isnin hingga Sabtu bagi minggu hari ini)
+      const dayOfWeek = actualTodayDate.getDay();
       const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      const mondayDate = new Date(refDate);
-      mondayDate.setDate(refDate.getDate() + diffToMonday);
+      const mondayDate = new Date(actualTodayDate);
+      mondayDate.setDate(actualTodayDate.getDate() + diffToMonday);
       const saturdayDate = new Date(mondayDate);
       saturdayDate.setDate(mondayDate.getDate() + 5);
 
@@ -1286,18 +1303,18 @@
       const saturdayStr = formatDateISO(saturdayDate);
 
       // 3. Label Sela Masa
-      let rangeLabel = "Hari Ini";
+      let rangeLabel = `Hari Ini (${actualTodayStr})`;
       if (activeRange === 'yesterday') {
-        rangeLabel = `Semalam (${yesterdayStr})`;
+        rangeLabel = `Semalam (${actualYesterdayStr})`;
       } else if (activeRange === 'day') {
-        rangeLabel = `Hari Ini (${refDateStr})`;
+        rangeLabel = `Hari Ini (${actualTodayStr})`;
       } else if (activeRange === 'custom') {
         rangeLabel = `Tarikh Pilihan (${customSelectedDate})`;
       } else if (activeRange === 'week') {
         rangeLabel = `Minggu Ini (${mondayStr} hingga ${saturdayStr})`;
       } else if (activeRange === 'month') {
         const bulanNama = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
-        rangeLabel = `Bulan ${bulanNama[refDate.getMonth()]} ${refDate.getFullYear()}`;
+        rangeLabel = `Bulan ${bulanNama[actualTodayDate.getMonth()]} ${actualTodayDate.getFullYear()}`;
       } else if (activeRange === 'year-2026') {
         rangeLabel = `Tahun 2026`;
       } else if (activeRange === 'year-2027' || activeRange === 'year') {
@@ -1308,12 +1325,7 @@
       document.getElementById('headingSelectedRange').innerText = rangeLabel;
       document.getElementById('subtextSelectedRange').innerText = `Menunjukkan senarai murid tidak hadir untuk sela masa: ${rangeLabel}`;
 
-      // 4. Penapisan Rekod:
-      // Syarat Hari Persekolahan:
-      // (a) Bukan Cuti Ad-Hoc di borang pelaporan (`statusHari !== 'Cuti'`)
-      // (b) Bukan di dalam senarai cuti pukal Admin (`!findHolidayForDate(rDateStr)`)
-      // (c) Jika hari Sabtu (day===6), HANYA dikira jika `statusHari === 'Ganti'`
-      // (d) Jika Isnin - Jumaat (day 1-5), dikira hari sekolah selagi bukan cuti
+      // 4. Penapisan Rekod Kehadiran
       const filtered = attendanceRecords.filter(r => {
         const rDate = parseDateSafe(r.tarikh);
         if (!rDate) return false;
@@ -1327,15 +1339,16 @@
         if (!isSchoolDay) return false;
 
         if (activeRange === 'yesterday') {
-          return rDateStr === yesterdayStr;
+          return rDateStr === actualYesterdayStr;
         } else if (activeRange === 'day') {
-          return rDateStr === refDateStr;
+          // Sentiasa memadankan tarikh kalendar semasa hari ini
+          return rDateStr === actualTodayStr;
         } else if (activeRange === 'custom') {
           return rDateStr === customSelectedDate;
         } else if (activeRange === 'week') {
           return rDateStr >= mondayStr && rDateStr <= saturdayStr;
         } else if (activeRange === 'month') {
-          return rDate.getMonth() === refDate.getMonth() && rDate.getFullYear() === refDate.getFullYear();
+          return rDate.getMonth() === actualTodayDate.getMonth() && rDate.getFullYear() === actualTodayDate.getFullYear();
         } else if (activeRange === 'year-2026') {
           return rDate.getFullYear() === 2026;
         } else if (activeRange === 'year-2027' || activeRange === 'year') {
@@ -1344,7 +1357,7 @@
         return true;
       });
 
-      // 5. Bilangan Hari Persekolahan Unik
+      // 5. Kira Bilangan Hari Persekolahan
       const uniqueSchoolDates = new Set();
       let gantiCount = 0;
 
@@ -1932,7 +1945,7 @@
         }
       });
 
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getActualTodayISO();
 
       const payload = {
         action: "updateStudents",
