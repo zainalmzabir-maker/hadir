@@ -56,7 +56,7 @@
           </button>
         </nav>
 
-        <!-- BUTANG KHAS: SISTEM MURID DATANG LEWAT (DILETAKKAN DI PALING KANAN) -->
+        <!-- BUTANG KHAS: SISTEM MURID DATANG LEWAT -->
         <a href="https://lewat.semekar.com/" target="_blank" rel="noopener noreferrer" 
            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-extrabold text-xs sm:text-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 shadow-sm transition-all hover:shadow-md transform hover:-translate-y-0.5"
            title="Buka Sistem Murid Datang Lewat (lewat.semekar.com)">
@@ -199,7 +199,6 @@
                 <th class="py-3 px-6">Status Kemaskini</th>
                 <th class="py-3 px-6">Masa Terakhir Kemaskini</th>
                 <th class="py-3 px-6">Kehadiran (Hadir / Semua)</th>
-                <!-- RUANGAN SELEPAS KEHADIRAN (HADIR / SEMUA) -->
                 <th class="py-3 px-6 min-w-[240px]">Murid Tidak Hadir & Alasan</th>
                 <th class="py-3 px-6">Peratusan (%)</th>
                 <th class="py-3 px-6">Tindakan</th>
@@ -295,7 +294,60 @@
         </div>
       </div>
 
-      <!-- SENARAI KETIDAKHADIRAN SEMALAM -->
+      <!-- JADUAL 1: SENARAI TIDAK HADIR MENGIKUT PENAPIS SELA TERPILIH (DILETAKKAN DI ATAS AGAR JELAS) -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-blue-50/40 flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h4 class="font-bold text-slate-800 text-base flex items-center gap-2">
+              <i class="fa-solid fa-filter text-blue-700"></i>
+              Senarai Murid Tidak Hadir: <span id="headingSelectedRange" class="text-blue-900">Hari Ini</span>
+            </h4>
+            <p class="text-xs text-slate-500" id="subtextSelectedRange">Memaparkan rekod mengikut penapis semasa.</p>
+          </div>
+          <span class="bg-rose-100 text-rose-800 font-extrabold text-xs px-3 py-1 rounded-full" id="filterResultCountBadge">0 Murid</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-6">Tarikh</th>
+                <th class="py-3 px-6">Kelas</th>
+                <th class="py-3 px-6">Nama Murid</th>
+                <th class="py-3 px-6">Sebab Ketidakhadiran</th>
+              </tr>
+            </thead>
+            <tbody id="tableAbsentByClass" class="divide-y divide-slate-100">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KEKERAPAN TIDAK HADIR & RAJIN HADIR -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="px-5 py-4 border-b border-slate-200 bg-rose-50/50 flex justify-between items-center">
+            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Kekerapan Tidak Hadir (Sela Terpilih)
+            </h4>
+            <span class="text-xs bg-rose-200/60 text-rose-800 font-bold px-2.5 py-0.5 rounded-full" id="countFrequentAbsent">0 Murid</span>
+          </div>
+          <div class="p-4 flex-1 overflow-y-auto max-h-[360px]" id="listFrequentAbsent">
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="px-5 py-4 border-b border-slate-200 bg-emerald-50/50 flex justify-between items-center">
+            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-award text-emerald-600"></i> Anugerah Murid 100% Hadir (Sela Terpilih)
+            </h4>
+            <span class="text-xs bg-emerald-200/60 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full" id="countDiligent">0 Murid</span>
+          </div>
+          <div class="p-4 flex-1 overflow-y-auto max-h-[360px]" id="listDiligentStudents">
+          </div>
+        </div>
+      </div>
+
+      <!-- JADUAL 2: SENARAI KETIDAKHADIRAN SEMALAM (RUJUKAN KHAS) -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 bg-amber-50/40 flex flex-wrap justify-between items-center gap-3">
           <div class="flex items-center gap-2">
@@ -319,55 +371,6 @@
               </tr>
             </thead>
             <tbody id="tableYesterdayAbsent" class="divide-y divide-slate-100">
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- KEKERAPAN TIDAK HADIR & RAJIN HADIR -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div class="px-5 py-4 border-b border-slate-200 bg-rose-50/50 flex justify-between items-center">
-            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-              <i class="fa-solid fa-triangle-exclamation text-rose-600"></i> Kekerapan Tidak Hadir (Kerap Ponteng/Cuti)
-            </h4>
-            <span class="text-xs bg-rose-200/60 text-rose-800 font-bold px-2.5 py-0.5 rounded-full" id="countFrequentAbsent">0 Murid</span>
-          </div>
-          <div class="p-4 flex-1 overflow-y-auto max-h-[360px]" id="listFrequentAbsent">
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div class="px-5 py-4 border-b border-slate-200 bg-emerald-50/50 flex justify-between items-center">
-            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-              <i class="fa-solid fa-award text-emerald-600"></i> Anugerah Murid Sangat Rajin Hadir (100%)
-            </h4>
-            <span class="text-xs bg-emerald-200/60 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full" id="countDiligent">0 Murid</span>
-          </div>
-          <div class="p-4 flex-1 overflow-y-auto max-h-[360px]" id="listDiligentStudents">
-          </div>
-        </div>
-      </div>
-
-      <!-- SENARAI TIDAK HADIR MENGIKUT KELAS (SELA TERPILIH) -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-          <div>
-            <h4 class="font-bold text-slate-800 text-base">Senarai Penuh Murid Tidak Hadir (Sela Masa Terpilih)</h4>
-            <p class="text-xs text-slate-500" id="subtextSelectedRange">Memaparkan rekod mengikut penapis semasa.</p>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-b border-slate-200">
-              <tr>
-                <th class="py-3 px-6">Tarikh</th>
-                <th class="py-3 px-6">Kelas</th>
-                <th class="py-3 px-6">Nama Murid</th>
-                <th class="py-3 px-6">Sebab Ketidakhadiran</th>
-              </tr>
-            </thead>
-            <tbody id="tableAbsentByClass" class="divide-y divide-slate-100">
             </tbody>
           </table>
         </div>
@@ -530,7 +533,36 @@
       customSelectedDate = today;
     }
 
-    // Kemaskini paparan kad jumlah murid dan tarikh kemaskini fail APDM
+    // =========================================================================
+    // FUNGSI RAWATAN & PENUKARAN TARIKH UNIVERSAL (BEBAS RALAT FORMAT)
+    // =========================================================================
+    function parseDateSafe(val) {
+      if (!val) return null;
+      if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+      
+      const str = String(val).trim();
+      // Format YYYY-MM-DD
+      if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(str)) {
+        const parts = str.split(/[-/T ]/);
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      }
+      // Format DD/MM/YYYY atau DD-MM-YYYY
+      if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}/.test(str)) {
+        const parts = str.split(/[-/T ]/);
+        return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+      }
+      const parsed = new Date(str);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function formatDateISO(d) {
+      if (!d || isNaN(d.getTime())) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
     function updateRumusanDbDateDisplay() {
       let totalStudentsSchoolRumusan = 0;
       Object.keys(STUDENTS_DATA).forEach(cls => totalStudentsSchoolRumusan += STUDENTS_DATA[cls].length);
@@ -639,7 +671,7 @@
       container.innerHTML = '';
       document.getElementById('badgeEnrolmen').innerText = list.length;
 
-      const existingRecords = attendanceRecords.filter(r => r.kelas === cls && r.tarikh === tarikh);
+      const existingRecords = attendanceRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === tarikh);
       const lastRecord = existingRecords.length > 0 ? existingRecords[existingRecords.length - 1] : null;
       const existingAbsentMap = {};
 
@@ -757,7 +789,6 @@
         const res = await fetch(GAS_API_URL);
         const data = await res.json();
         
-        // Simpan tarikh kemaskini Excel dari server jika ada
         if (data.lastDbUpdate) {
           lastStudentDbDate = data.lastDbUpdate;
           localStorage.setItem('smkka_last_db_date', data.lastDbUpdate);
@@ -796,7 +827,7 @@
       document.getElementById('dashTotalStudents').innerText = totalStudentsSchool;
 
       classes.forEach(cls => {
-        const classRecordsToday = attendanceRecords.filter(r => r.kelas === cls && r.tarikh === today);
+        const classRecordsToday = attendanceRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === today);
         const lastRecord = classRecordsToday.length > 0 ? classRecordsToday[classRecordsToday.length - 1] : null;
         const tr = document.createElement('tr');
         tr.className = "group hover:bg-slate-50/80 transition";
@@ -816,7 +847,7 @@
             if (Array.isArray(lastRecord.absentees)) {
               absList = lastRecord.absentees;
             } else if (typeof lastRecord.absentees === 'string') {
-              try { absList = JSON.parse(absList); } catch(e) { absList = []; }
+              try { absList = JSON.parse(lastRecord.absentees); } catch (e) { absList = []; }
             }
           }
 
@@ -853,7 +884,6 @@
           }
 
           tr.innerHTML = `
-            <!-- LAJUR KELAS TERAPUNG (STICKY LEFT) -->
             <td class="py-3 px-6 font-bold text-slate-800 sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-slate-200 shadow-xs">${cls}</td>
             <td class="py-3 px-6">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
@@ -862,7 +892,6 @@
             </td>
             <td class="py-3 px-6 text-slate-600 font-mono text-xs">${lastRecord.timestamp}</td>
             <td class="py-3 px-6 font-bold text-slate-700">${hadir} / ${enrol} Murid</td>
-            <!-- RUANGAN SENARAI MURID TIDAK HADIR & ALASAN -->
             <td class="py-3 px-6">
               ${absenteesCellHtml}
             </td>
@@ -880,7 +909,6 @@
           `;
         } else {
           tr.innerHTML = `
-            <!-- LAJUR KELAS TERAPUNG (STICKY LEFT) -->
             <td class="py-3 px-6 font-bold text-slate-800 sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-slate-200 shadow-xs">${cls}</td>
             <td class="py-3 px-6">
               <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">
@@ -903,7 +931,7 @@
       document.getElementById('dashTotalAbsentToday').innerText = totalAbsentToday;
       if (completedCount > 0) {
         const auditedEnrol = classes.reduce((sum, c) => {
-          const rec = attendanceRecords.filter(r => r.kelas === c && r.tarikh === today);
+          const rec = attendanceRecords.filter(r => r.kelas === c && formatDateISO(parseDateSafe(r.tarikh)) === today);
           return rec.length > 0 ? sum + STUDENTS_DATA[c].length : sum;
         }, 0);
         const overallPct = auditedEnrol > 0 ? ((totalPresentToday / auditedEnrol) * 100).toFixed(1) : 0;
@@ -917,12 +945,6 @@
       document.getElementById('selectKelas').value = cls;
       renderStudentList();
       switchPage('pelaporan');
-    }
-
-    function getYesterdayDateStr(refDateStr) {
-      const base = refDateStr ? new Date(refDateStr) : new Date();
-      base.setDate(base.getDate() - 1);
-      return base.toISOString().split('T')[0];
     }
 
     function setTimeRange(range) {
@@ -957,32 +979,44 @@
       }
     }
 
+    // =========================================================================
+    // RENDER RUMUSAN DENGAN PENAPIS YANG TEPAT & KUKUH
+    // =========================================================================
     function renderRumusan() {
       const inputDate = document.getElementById('inputTarikh').value || new Date().toISOString().split('T')[0];
-      const yesterdayStr = getYesterdayDateStr(inputDate);
+      const refDate = parseDateSafe(inputDate) || new Date();
+      const refDateStr = formatDateISO(refDate);
+
+      const yestDate = new Date(refDate);
+      yestDate.setDate(yestDate.getDate() - 1);
+      const yesterdayStr = formatDateISO(yestDate);
       
       updateRumusanDbDateDisplay();
 
+      // 1. Dapatkan & paparkan data semalam
       document.getElementById('statYesterdayDateText').innerText = `Tarikh: ${yesterdayStr}`;
       document.getElementById('yesterdayDisplayLabel').innerText = yesterdayStr;
 
-      const yesterdayRecords = attendanceRecords.filter(r => r.tarikh === yesterdayStr);
+      const yesterdayRecords = attendanceRecords.filter(r => formatDateISO(parseDateSafe(r.tarikh)) === yesterdayStr);
       let yesterdayAbsentCount = 0;
       const yesterdayAbsenteesList = [];
 
       yesterdayRecords.forEach(rec => {
-        if (rec.absentees && Array.isArray(rec.absentees)) {
-          rec.absentees.forEach(a => {
-            const proc = processAbsenteeReason(a.sebab, rec.timestamp);
-            yesterdayAbsentCount++;
-            yesterdayAbsenteesList.push({
-              kelas: rec.kelas,
-              nama: a.nama,
-              sebab: proc.actual,
-              sebabDisplay: proc.display,
-              isApung: proc.actual === 'Apung (48 jam)' && !proc.isExpired
+        if (rec.absentees) {
+          let aList = typeof rec.absentees === 'string' ? JSON.parse(rec.absentees) : rec.absentees;
+          if (Array.isArray(aList)) {
+            aList.forEach(a => {
+              const proc = processAbsenteeReason(a.sebab, rec.timestamp);
+              yesterdayAbsentCount++;
+              yesterdayAbsenteesList.push({
+                kelas: rec.kelas,
+                nama: a.nama,
+                sebab: proc.actual,
+                sebabDisplay: proc.display,
+                isApung: proc.actual === 'Apung (48 jam)' && !proc.isExpired
+              });
             });
-          });
+          }
         }
       });
 
@@ -1016,42 +1050,55 @@
         });
       }
 
+      // 2. Tentukan Label Sela Terpilih Sebelum Tapis
       let rangeLabel = "Hari Ini";
-      const targetDate = new Date(inputDate);
+      if (activeRange === 'yesterday') {
+        rangeLabel = `Semalam (${yesterdayStr})`;
+      } else if (activeRange === 'day') {
+        rangeLabel = `Hari Ini (${refDateStr})`;
+      } else if (activeRange === 'custom') {
+        rangeLabel = `Tarikh Pilihan (${customSelectedDate})`;
+      } else if (activeRange === 'week') {
+        rangeLabel = `7 Hari Terakhir`;
+      } else if (activeRange === 'month') {
+        const bulanNama = ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"];
+        rangeLabel = `Bulan ${bulanNama[refDate.getMonth()]} ${refDate.getFullYear()}`;
+      } else if (activeRange === 'year-2026') {
+        rangeLabel = `Tahun 2026`;
+      } else if (activeRange === 'year-2027' || activeRange === 'year') {
+        rangeLabel = `Tahun 2027`;
+      }
 
+      document.getElementById('statSelectedRangeText').innerText = rangeLabel;
+      document.getElementById('headingSelectedRange').innerText = rangeLabel;
+      document.getElementById('subtextSelectedRange').innerText = `Menunjukkan senarai murid tidak hadir untuk sela masa: ${rangeLabel}`;
+
+      // 3. Tapis Rekod Menggunakan Normalizer Tarikh
       const filtered = attendanceRecords.filter(r => {
-        const d = new Date(r.tarikh);
-        const recordYear = !isNaN(d.getFullYear()) ? d.getFullYear() : parseInt(String(r.tarikh).split('-')[0]);
+        const rDate = parseDateSafe(r.tarikh);
+        if (!rDate) return false;
+        const rDateStr = formatDateISO(rDate);
 
         if (activeRange === 'yesterday') {
-          rangeLabel = `Semalam (${yesterdayStr})`;
-          return r.tarikh === yesterdayStr;
+          return rDateStr === yesterdayStr;
         } else if (activeRange === 'day') {
-          rangeLabel = `Hari Ini (${inputDate})`;
-          return r.tarikh === inputDate;
+          return rDateStr === refDateStr;
         } else if (activeRange === 'custom') {
-          rangeLabel = `Tarikh Pilihan (${customSelectedDate})`;
-          return r.tarikh === customSelectedDate;
+          return rDateStr === customSelectedDate;
         } else if (activeRange === 'week') {
-          rangeLabel = `7 Hari Terakhir`;
-          const diffDays = (targetDate - d) / (1000 * 3600 * 24);
+          const diffDays = Math.floor((refDate.getTime() - rDate.getTime()) / (1000 * 3600 * 24));
           return diffDays >= 0 && diffDays <= 7;
         } else if (activeRange === 'month') {
-          rangeLabel = `Bulan Ini`;
-          return d.getMonth() === targetDate.getMonth() && d.getFullYear() === targetDate.getFullYear();
+          return rDate.getMonth() === refDate.getMonth() && rDate.getFullYear() === refDate.getFullYear();
         } else if (activeRange === 'year-2026') {
-          rangeLabel = `Tahun 2026`;
-          return recordYear === 2026;
+          return rDate.getFullYear() === 2026;
         } else if (activeRange === 'year-2027' || activeRange === 'year') {
-          rangeLabel = `Tahun 2027`;
-          return recordYear === 2027;
+          return rDate.getFullYear() === 2027;
         }
         return true;
       });
 
-      document.getElementById('statSelectedRangeText').innerText = rangeLabel;
-      document.getElementById('subtextSelectedRange').innerText = `Menunjukkan senarai murid tidak hadir untuk sela masa: ${rangeLabel}`;
-
+      // 4. Proses Rekod Yang Berjaya Ditapis
       let totalAbsentCount = 0;
       let totalHadirSum = 0;
       let totalEnrolSum = 0;
@@ -1059,35 +1106,70 @@
       const studentAllAbsences = [];
 
       filtered.forEach(record => {
-        totalHadirSum += Number(record.hadir);
-        totalEnrolSum += Number(record.enrolmen);
+        totalHadirSum += Number(record.hadir) || 0;
+        totalEnrolSum += Number(record.enrolmen) || 0;
 
-        if (record.absentees && record.absentees.length > 0) {
+        if (record.absentees) {
           let absList = record.absentees;
           if (typeof absList === 'string') {
             try { absList = JSON.parse(absList); } catch(e) { absList = []; }
           }
-          absList.forEach(a => {
-            const proc = processAbsenteeReason(a.sebab, record.timestamp);
-            totalAbsentCount++;
-            const key = `${a.nama}___${record.kelas}`;
-            absentFreqMap[key] = (absentFreqMap[key] || 0) + 1;
-            studentAllAbsences.push({
-              tarikh: record.tarikh,
-              kelas: record.kelas,
-              nama: a.nama,
-              sebab: proc.actual,
-              sebabDisplay: proc.display,
-              isApung: proc.actual === 'Apung (48 jam)' && !proc.isExpired
+          if (Array.isArray(absList)) {
+            absList.forEach(a => {
+              const proc = processAbsenteeReason(a.sebab, record.timestamp);
+              totalAbsentCount++;
+              const key = `${a.nama}___${record.kelas}`;
+              absentFreqMap[key] = (absentFreqMap[key] || 0) + 1;
+              studentAllAbsences.push({
+                tarikh: formatDateISO(parseDateSafe(record.tarikh)) || record.tarikh,
+                kelas: record.kelas,
+                nama: a.nama,
+                sebab: proc.actual,
+                sebabDisplay: proc.display,
+                isApung: proc.actual === 'Apung (48 jam)' && !proc.isExpired
+              });
             });
-          });
+          }
         }
       });
 
       document.getElementById('statTotalAbsent').innerText = totalAbsentCount;
-      const avgPct = totalEnrolSum > 0 ? ((totalHadirSum / totalEnrolSum) * 100).toFixed(1) : '100';
+      document.getElementById('filterResultCountBadge').innerText = `${totalAbsentCount} Murid`;
+
+      const avgPct = totalEnrolSum > 0 ? ((totalHadirSum / totalEnrolSum) * 100).toFixed(1) : (filtered.length > 0 ? '100' : '0.0');
       document.getElementById('statAvgAttendance').innerText = `${avgPct}%`;
 
+      // 5. Kemaskini Jadual Murid Tidak Hadir Sela Terpilih
+      const detailTbody = document.getElementById('tableAbsentByClass');
+      detailTbody.innerHTML = '';
+
+      if (studentAllAbsences.length === 0) {
+        detailTbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran bagi sela masa "${rangeLabel}".</td></tr>`;
+      } else {
+        studentAllAbsences.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+            <td class="py-2.5 px-6 font-mono text-xs text-slate-600">${row.tarikh}</td>
+            <td class="py-2.5 px-6 font-bold text-slate-800">${row.kelas}</td>
+            <td class="py-2.5 px-6 font-semibold text-slate-700">${row.nama}</td>
+            <td class="py-2.5 px-6">
+              ${row.isApung ? `
+                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded text-xs font-semibold">
+                  <i class="fa-regular fa-clock text-[10px]"></i> ${row.sebabDisplay}
+                </span>
+              ` : `
+                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-xs font-medium">
+                  ${row.sebabDisplay}
+                </span>
+              `}
+            </td>
+          `;
+          detailTbody.appendChild(tr);
+        });
+      }
+
+      // 6. Kekerapan Ponteng / Kerap Cuti
       const frequentListEl = document.getElementById('listFrequentAbsent');
       frequentListEl.innerHTML = '';
       const sortedAbsent = Object.entries(absentFreqMap).sort((a, b) => b[1] - a[1]);
@@ -1113,6 +1195,7 @@
         });
       }
 
+      // 7. Senarai 100% Hadir
       const diligentListEl = document.getElementById('listDiligentStudents');
       diligentListEl.innerHTML = '';
       let diligentCount = 0;
@@ -1143,35 +1226,6 @@
 
       document.getElementById('statSuperDiligentCount').innerText = diligentCount;
       document.getElementById('countDiligent').innerText = `${diligentCount} Murid`;
-
-      const detailTbody = document.getElementById('tableAbsentByClass');
-      detailTbody.innerHTML = '';
-
-      if (studentAllAbsences.length === 0) {
-        detailTbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran bagi sela masa ini.</td></tr>`;
-      } else {
-        studentAllAbsences.forEach(row => {
-          const tr = document.createElement('tr');
-          tr.className = "hover:bg-slate-50 transition";
-          tr.innerHTML = `
-            <td class="py-2.5 px-6 font-mono text-xs text-slate-600">${row.tarikh}</td>
-            <td class="py-2.5 px-6 font-bold text-slate-800">${row.kelas}</td>
-            <td class="py-2.5 px-6 font-semibold text-slate-700">${row.nama}</td>
-            <td class="py-2.5 px-6">
-              ${row.isApung ? `
-                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded text-xs font-semibold">
-                  <i class="fa-regular fa-clock text-[10px]"></i> ${row.sebabDisplay}
-                </span>
-              ` : `
-                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded text-xs font-medium">
-                  ${row.sebabDisplay}
-                </span>
-              `}
-            </td>
-          `;
-          detailTbody.appendChild(tr);
-        });
-      }
     }
 
     // =========================================================================
@@ -1379,7 +1433,6 @@
       }
     }
 
-    // Sahkan & Simpan Pangkalan Data Baru ke Google Sheets
     async function commitAdminUpdate() {
       if (!newlyExtractedData) {
         alert("Sila pilih fail Excel terlebih dahulu.");
@@ -1424,7 +1477,6 @@
         STUDENTS_DATA = finalStudentsData;
         localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
 
-        // KEMASKINI TARIKH DATABASE EXCEL KE TARIKH HARI INI
         lastStudentDbDate = todayStr;
         localStorage.setItem('smkka_last_db_date', todayStr);
         updateRumusanDbDateDisplay();
@@ -1461,7 +1513,6 @@
       `;
     }
 
-    // Hapus Murid Individu daripada Pangkalan Data Aktif
     async function purgeStudentDirectly(nama, kelas) {
       if (!confirm(`Adakah anda pasti mahu menghapuskan murid ${nama} dari kelas ${kelas}? Rekod kehadiran lalu murid ini tidak akan hilang dari arkib.`)) {
         return;
