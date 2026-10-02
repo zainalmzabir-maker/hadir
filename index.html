@@ -37,22 +37,34 @@
         </div>
       </div>
 
-      <!-- NAVIGATION TABS -->
-      <nav class="flex bg-slate-100 p-1.5 rounded-xl gap-1">
-        <button onclick="switchPage('pelaporan')" id="tab-pelaporan" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all bg-white text-blue-900 shadow-sm">
-          <i class="fa-solid fa-clipboard-user mr-1"></i> Pelaporan
-        </button>
-        <button onclick="switchPage('dashboard')" id="tab-dashboard" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-slate-600 hover:text-blue-900">
-          <i class="fa-solid fa-chart-pie mr-1"></i> Dashboard
-        </button>
-        <button onclick="switchPage('rumusan')" id="tab-rumusan" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-slate-600 hover:text-blue-900">
-          <i class="fa-solid fa-chart-column mr-1"></i> Rumusan & Statistik
-        </button>
-        <button onclick="switchPage('admin')" id="tab-admin" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-rose-700 hover:bg-rose-50 flex items-center gap-1.5">
-          <i class="fa-solid fa-user-shield"></i> Admin
-          <span id="badgeOrphanNotice" class="hidden w-2 h-2 rounded-full bg-rose-600 pulse-alert"></span>
-        </button>
-      </nav>
+      <!-- BAHAGIAN KANAN: BUTANG KHAS SISTEM LEWAT & NAVIGATION TABS -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <!-- BUTANG KHAS: SISTEM MURID DATANG LEWAT (KEKAL PADA SEMUA HALAMAN) -->
+        <a href="https://lewat.semekar.com/" target="_blank" rel="noopener noreferrer" 
+           class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-extrabold text-xs sm:text-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 shadow-sm transition-all hover:shadow-md transform hover:-translate-y-0.5"
+           title="Buka Sistem Murid Datang Lewat (lewat.semekar.com)">
+          <i class="fa-solid fa-person-walking-dashed-line-arrow-right text-slate-950 text-sm"></i>
+          <span>Murid Datang Lewat</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-900/80"></i>
+        </a>
+
+        <!-- NAVIGATION TABS -->
+        <nav class="flex bg-slate-100 p-1.5 rounded-xl gap-1">
+          <button onclick="switchPage('pelaporan')" id="tab-pelaporan" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all bg-white text-blue-900 shadow-sm">
+            <i class="fa-solid fa-clipboard-user mr-1"></i> Pelaporan
+          </button>
+          <button onclick="switchPage('dashboard')" id="tab-dashboard" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-slate-600 hover:text-blue-900">
+            <i class="fa-solid fa-chart-pie mr-1"></i> Dashboard
+          </button>
+          <button onclick="switchPage('rumusan')" id="tab-rumusan" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-slate-600 hover:text-blue-900">
+            <i class="fa-solid fa-chart-column mr-1"></i> Rumusan & Statistik
+          </button>
+          <button onclick="switchPage('admin')" id="tab-admin" class="nav-tab px-3.5 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all text-rose-700 hover:bg-rose-50 flex items-center gap-1.5">
+            <i class="fa-solid fa-user-shield"></i> Admin
+            <span id="badgeOrphanNotice" class="hidden w-2 h-2 rounded-full bg-rose-600 pulse-alert"></span>
+          </button>
+        </nav>
+      </div>
     </div>
   </header>
 
@@ -222,7 +234,12 @@
             <button onclick="setTimeRange('month')" id="filter-month" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
               Bulan Ini
             </button>
-            <button onclick="setTimeRange('year')" id="filter-year" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
+            <!-- PENAPIS TAHUN 2026 -->
+            <button onclick="setTimeRange('year-2026')" id="filter-year-2026" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
+              Tahun 2026
+            </button>
+            <!-- PENAPIS TAHUN 2027 -->
+            <button onclick="setTimeRange('year-2027')" id="filter-year-2027" class="filter-btn px-3 py-1.5 text-xs font-bold rounded-lg text-slate-600 transition hover:text-blue-900">
               Tahun 2027
             </button>
             <div class="flex items-center pl-2 border-l border-slate-300 gap-1">
@@ -508,7 +525,6 @@
         const diffHours = (now - recordTime) / (1000 * 60 * 60);
 
         if (diffHours >= 48) {
-          // Telah melepasi 48 jam -> bertukar automatik kepada Tanpa Kenyataan (Ponteng)
           return {
             display: 'Tanpa Kenyataan (Ponteng)',
             isExpired: true,
@@ -583,7 +599,6 @@
       container.innerHTML = '';
       document.getElementById('badgeEnrolmen').innerText = list.length;
 
-      // Semak jika sudah ada rekod kehadiran bagi tarikh dan kelas ini
       const existingRecords = attendanceRecords.filter(r => r.kelas === cls && r.tarikh === tarikh);
       const lastRecord = existingRecords.length > 0 ? existingRecords[existingRecords.length - 1] : null;
       const existingAbsentMap = {};
@@ -862,9 +877,10 @@
       return base.toISOString().split('T')[0];
     }
 
+    // Dikemaskini untuk menyokong 'year-2026' dan 'year-2027'
     function setTimeRange(range) {
       activeRange = range;
-      ['yesterday', 'day', 'week', 'month', 'year'].forEach(r => {
+      ['yesterday', 'day', 'week', 'month', 'year-2026', 'year-2027'].forEach(r => {
         const btn = document.getElementById(`filter-${r}`);
         if (!btn) return;
         if (r === range) {
@@ -883,7 +899,7 @@
       if (val) {
         customSelectedDate = val;
         activeRange = 'custom';
-        ['yesterday', 'day', 'week', 'month', 'year'].forEach(r => {
+        ['yesterday', 'day', 'week', 'month', 'year-2026', 'year-2027'].forEach(r => {
           const btn = document.getElementById(`filter-${r}`);
           if (btn) {
             btn.classList.remove('bg-white', 'shadow-xs', 'text-blue-900');
@@ -956,6 +972,8 @@
 
       const filtered = attendanceRecords.filter(r => {
         const d = new Date(r.tarikh);
+        const recordYear = !isNaN(d.getFullYear()) ? d.getFullYear() : parseInt(String(r.tarikh).split('-')[0]);
+
         if (activeRange === 'yesterday') {
           rangeLabel = `Semalam (${yesterdayStr})`;
           return r.tarikh === yesterdayStr;
@@ -972,9 +990,12 @@
         } else if (activeRange === 'month') {
           rangeLabel = `Bulan Ini`;
           return d.getMonth() === targetDate.getMonth() && d.getFullYear() === targetDate.getFullYear();
-        } else if (activeRange === 'year') {
+        } else if (activeRange === 'year-2026') {
+          rangeLabel = `Tahun 2026`;
+          return recordYear === 2026;
+        } else if (activeRange === 'year-2027' || activeRange === 'year') {
           rangeLabel = `Tahun 2027`;
-          return d.getFullYear() === targetDate.getFullYear();
+          return recordYear === 2027;
         }
         return true;
       });
