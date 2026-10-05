@@ -79,7 +79,7 @@
             <h2 class="text-xl font-bold flex items-center gap-2">
               <i class="fa-solid fa-edit text-amber-400"></i> Borang Kemaskini Kehadiran Harian (2027)
             </h2>
-            <p class="text-blue-200 text-xs mt-1">Tandakan murid yang TIDAK HADIR sahaja dan nyatakan sebab ketidakhadiran.</p>
+            <p class="text-blue-200 text-xs mt-1">Pilih kelas terlebih dahulu, kemudian tandakan murid yang TIDAK HADIR sahaja.</p>
           </div>
           <div class="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-right">
             <span class="text-[10px] uppercase font-bold tracking-wider text-blue-200 block">Masa Kemaskini (Auto)</span>
@@ -140,9 +140,11 @@
               </select>
             </div>
 
+            <!-- PILIHAN KELAS DENGAN PILIHAN DEFAULT KOSONG -->
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Pilih Kelas</label>
               <select id="selectKelas" onchange="renderStudentList()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
+                <option value="">-- Sila Pilih Kelas --</option>
               </select>
             </div>
 
@@ -184,7 +186,7 @@
       </div>
     </section>
 
-    <!-- ==================== PAGE 2: DASHBOARD (STATISTIK HARI INI BERDASARKAN TARIKH SEMASA) ==================== -->
+    <!-- ==================== PAGE 2: DASHBOARD ==================== -->
     <section id="page-dashboard" class="hidden space-y-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -323,7 +325,6 @@
             <p class="text-[11px] text-indigo-600 mt-0.5" id="statSchoolDaysSubtext">Sela Masa Terpilih</p>
           </div>
 
-          <!-- KAD TIDAK HADIR SEMALAM / HARI PERSEKOLAHAN SEBELUMNYA -->
           <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
             <p class="text-xs font-bold text-amber-700" id="statYesterdayTitle">Tidak Hadir Semalam</p>
             <p class="text-3xl font-black text-amber-800 mt-1" id="statYesterdayAbsent">0</p>
@@ -528,7 +529,7 @@
               <i class="fa-solid fa-list-check text-slate-600"></i> Senarai Cuti Yang Telah Didaftarkan:
             </h4>
             <div id="holidaysListContainer" class="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-[280px] overflow-y-auto">
-              <div class="p-4 text-center text-xs text-slate-400 italic">Tiada cuti pukal didaftarkan.</div>
+              <div class="p-4 text-center text-xs text-slate-400 italic">Tiada cuti pukal didaftarkan lagi.</div>
             </div>
           </div>
         </div>
@@ -682,9 +683,7 @@
       }
     }
 
-    // =========================================================================
-    // FUNGSI NYAH-DUPLIKASI (DEDUPLICATION): MENGELAKKAN DATA BERTINDIH
-    // =========================================================================
+    // Penyahduplikasian rekod kehadiran
     function getDeduplicatedAttendance(records) {
       if (!records || !Array.isArray(records)) return [];
       const map = new Map();
@@ -692,15 +691,11 @@
         const dStr = formatDateISO(parseDateSafe(r.tarikh));
         if (!dStr || !r.kelas) return;
         const key = `${dStr}___${String(r.kelas).trim()}`;
-        // Rekod yang muncul terkemudian (latest) akan menggantikan rekod terdahulu
         map.set(key, r);
       });
       return Array.from(map.values());
     }
 
-    // =========================================================================
-    // HARI PERSEKOLAHAN TERAKHIR SEBELUM TARIKH RUJUKAN
-    // =========================================================================
     function getPreviousSchoolDayWithData(refDateStr) {
       const refDate = parseDateSafe(refDateStr) || new Date();
       const candidateDates = [];
@@ -933,18 +928,25 @@
       updateRumusanDbDateDisplay();
     }
 
+    // =========================================================================
+    // POPULATE CLASS SELECT: PILIHAN DEFAULT ADALAH KOSONG (TIADA KELAS TERPILIH)
+    // =========================================================================
     function populateClassSelect() {
       const select = document.getElementById('selectKelas');
       const currentVal = select.value;
-      select.innerHTML = '';
+      
+      select.innerHTML = '<option value="">-- Sila Pilih Kelas --</option>';
       Object.keys(STUDENTS_DATA).forEach(cls => {
         const opt = document.createElement('option');
         opt.value = cls;
         opt.textContent = `Kelas ${cls} (${STUDENTS_DATA[cls].length} Murid)`;
         select.appendChild(opt);
       });
+
       if (currentVal && STUDENTS_DATA[currentVal]) {
         select.value = currentVal;
+      } else {
+        select.value = "";
       }
       renderStudentList();
     }
@@ -970,13 +972,47 @@
     }
 
     // =========================================================================
-    // PAPARAN SENARAI MURID PELAPORAN
+    // PAPARAN SENARAI MURID PELAPORAN: TUTUP JIKA TIADA KELAS DIPILIH
     // =========================================================================
     function renderStudentList() {
       const cls = document.getElementById('selectKelas').value;
       const tarikh = document.getElementById('inputTarikh').value;
-      const list = STUDENTS_DATA[cls] || [];
       const container = document.getElementById('studentContainer');
+      const bannerEl = document.getElementById('classFilledBanner');
+      const btnSaveEl = document.getElementById('btnSave');
+
+      // JIKA TIADA KELAS DIPILIH (PILIHAN DEFAULT)
+      if (!cls || !STUDENTS_DATA[cls]) {
+        if (bannerEl) bannerEl.classList.add('hidden');
+        document.getElementById('badgeEnrolmen').innerText = "0";
+        document.getElementById('badgeAbsentCount').innerText = "0";
+        document.getElementById('badgePresentCount').innerText = "0";
+
+        container.innerHTML = `
+          <div class="py-14 px-4 text-center text-slate-400 bg-slate-50/40">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-blue-50 text-blue-800 flex items-center justify-center text-2xl mb-3 shadow-2xs">
+              <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <p class="text-sm font-bold text-slate-700">Sila Pilih Kelas Terlebih Dahulu</p>
+            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Pilih kelas di bahagian menu atas untuk memaparkan senarai nama murid dan mengemaskini rekod kehadiran.</p>
+          </div>
+        `;
+
+        if (btnSaveEl) {
+          btnSaveEl.disabled = true;
+          btnSaveEl.classList.add('opacity-50', 'cursor-not-allowed');
+          btnSaveEl.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Sila Pilih Kelas Dahulu`;
+        }
+        return;
+      }
+
+      // KELAS TELAH DIPILIH: AKTIFKAN BUTANG SIMPAN
+      if (btnSaveEl) {
+        btnSaveEl.disabled = false;
+        btnSaveEl.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+
+      const list = STUDENTS_DATA[cls] || [];
       container.innerHTML = '';
       document.getElementById('badgeEnrolmen').innerText = list.length;
 
@@ -984,9 +1020,6 @@
       const existingRecords = cleanRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === tarikh);
       const lastRecord = existingRecords.length > 0 ? existingRecords[existingRecords.length - 1] : null;
       const existingAbsentMap = {};
-
-      const bannerEl = document.getElementById('classFilledBanner');
-      const btnSaveEl = document.getElementById('btnSave');
 
       if (lastRecord) {
         if (bannerEl) {
@@ -1062,6 +1095,11 @@
 
     function updateCounter() {
       const cls = document.getElementById('selectKelas').value;
+      if (!cls || !STUDENTS_DATA[cls]) {
+        document.getElementById('badgeAbsentCount').innerText = "0";
+        document.getElementById('badgePresentCount').innerText = "0";
+        return;
+      }
       const total = (STUDENTS_DATA[cls] || []).length;
       const absentCount = document.querySelectorAll('.absent-check:checked').length;
       document.getElementById('badgeAbsentCount').innerText = absentCount;
@@ -1069,19 +1107,26 @@
     }
 
     function resetPelaporanForm() {
+      document.getElementById('selectKelas').value = "";
       renderStudentList();
     }
 
     // =========================================================================
-    // SIMPAN KEHADIRAN (DENGAN REKOD BEBAS DUPLIKASI)
+    // SIMPAN KEHADIRAN
     // =========================================================================
     async function saveAttendance() {
       const btn = document.getElementById('btnSave');
       const cls = document.getElementById('selectKelas').value;
       const tarikh = document.getElementById('inputTarikh').value;
       const statusHari = document.getElementById('selectStatusHari').value;
+
+      if (!cls || !STUDENTS_DATA[cls]) {
+        alert("Sila pilih kelas terlebih dahulu sebelum menyimpan kehadiran.");
+        document.getElementById('selectKelas').focus();
+        return;
+      }
+
       const list = STUDENTS_DATA[cls] || [];
-      
       const absentees = [];
       const seenNames = new Set();
 
@@ -1122,7 +1167,6 @@
         statusHari: payload.statusHari
       };
 
-      // Gantikan rekod sedia ada dalam memori (elak duplikasi)
       const existingIdx = attendanceRecords.findIndex(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === tarikh);
       if (existingIdx >= 0) {
         attendanceRecords[existingIdx] = newRec;
@@ -1372,21 +1416,18 @@
     }
 
     // =========================================================================
-    // RENDER RUMUSAN: BEBAS DARI MASALAH NAMA BERTINDIH
+    // RENDER RUMUSAN
     // =========================================================================
     function renderRumusan() {
       const isCustom = (activeRange === 'custom' && !!customSelectedDate);
       const refDateStr = isCustom ? customSelectedDate : getActualTodayISO();
       const refDate = parseDateSafe(refDateStr) || new Date();
 
-      // Gunakan rekod yang telah dinyah-duplikasi
       const cleanRecords = getDeduplicatedAttendance(attendanceRecords);
-
       const targetYesterdayStr = getPreviousSchoolDayWithData(refDateStr);
       
       updateRumusanDbDateDisplay();
 
-      // 1. Data Ketidakhadiran Semalam / Hari Sebelumnya
       const statTitleEl = document.getElementById('statYesterdayTitle');
       if (statTitleEl) {
         statTitleEl.innerText = isCustom ? 'Tidak Hadir Hari Sebelumnya' : 'Tidak Hadir Semalam';
@@ -1457,7 +1498,6 @@
         });
       }
 
-      // 2. Kiraan Sela Minggu
       const dayOfWeek = refDate.getDay();
       const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
       const mondayDate = new Date(refDate);
@@ -1468,7 +1508,6 @@
       const mondayStr = formatDateISO(mondayDate);
       const saturdayStr = formatDateISO(saturdayDate);
 
-      // 3. Label Sela Masa
       let rangeLabel = `Hari Ini (${refDateStr})`;
       if (activeRange === 'yesterday') {
         rangeLabel = `Semalam (${targetYesterdayStr})`;
@@ -1491,7 +1530,6 @@
       document.getElementById('headingSelectedRange').innerText = rangeLabel;
       document.getElementById('subtextSelectedRange').innerText = `Menunjukkan senarai murid tidak hadir untuk sela masa: ${rangeLabel}`;
 
-      // 4. Penapisan Rekod Kehadiran dari Rekod Bersih (Bebas Pertindihan)
       const filtered = cleanRecords.filter(r => {
         const rDate = parseDateSafe(r.tarikh);
         if (!rDate) return false;
@@ -1522,7 +1560,6 @@
         return true;
       });
 
-      // 5. Bilangan Hari Persekolahan Unik
       const uniqueSchoolDates = new Set();
       let gantiCount = 0;
 
@@ -1538,13 +1575,12 @@
       document.getElementById('statSchoolDaysCount').innerText = `${schoolDaysTotal} Hari`;
       document.getElementById('statSchoolDaysSubtext').innerText = gantiCount > 0 ? `Termasuk ${gantiCount} hari Sabtu ganti` : `Hari persekolahan selesai`;
 
-      // 6. Analisis Ketidakhadiran (Penyahduplikasian Peringkat Akhir)
       let totalAbsentCount = 0;
       let totalHadirSum = 0;
       let totalEnrolSum = 0;
       const absentFreqMap = {};
       const studentAllAbsences = [];
-      const duplicateFilterSet = new Set(); // Kunci elak nama sama pada tarikh & kelas sama
+      const duplicateFilterSet = new Set();
 
       filtered.forEach(record => {
         totalHadirSum += Number(record.hadir) || 0;
@@ -1560,7 +1596,6 @@
               const rTarikhStr = formatDateISO(parseDateSafe(record.tarikh)) || record.tarikh;
               const dupKey = `${rTarikhStr}___${record.kelas}___${a.nama}`;
 
-              // Elakkan rekod bertindih jika tersimpan dua kali
               if (!duplicateFilterSet.has(dupKey)) {
                 duplicateFilterSet.add(dupKey);
 
@@ -1588,7 +1623,6 @@
       const avgPct = totalEnrolSum > 0 ? ((totalHadirSum / totalEnrolSum) * 100).toFixed(1) : (filtered.length > 0 ? '100' : '0.0');
       document.getElementById('statAvgAttendance').innerText = `${avgPct}%`;
 
-      // 7. Jadual Senarai Murid Tidak Hadir
       const detailTbody = document.getElementById('tableAbsentByClass');
       detailTbody.innerHTML = '';
 
@@ -1618,7 +1652,6 @@
         });
       }
 
-      // 8. Kekerapan Tidak Hadir
       const frequentListEl = document.getElementById('listFrequentAbsent');
       frequentListEl.innerHTML = '';
       const sortedAbsent = Object.entries(absentFreqMap).sort((a, b) => b[1] - a[1]);
@@ -1644,7 +1677,6 @@
         });
       }
 
-      // 9. Anugerah 100% Hadir
       const diligentListEl = document.getElementById('listDiligentStudents');
       diligentListEl.innerHTML = '';
       let diligentCount = 0;
@@ -1876,7 +1908,7 @@
             <div>
               <p class="text-xs font-bold text-slate-800">${h.nama}</p>
               <p class="text-[11px] text-slate-500 font-medium">
-                ${h.mula === h.akhir ? h.mula : `${h.mula} hingga ${h.akhir}`} 
+                ${h.mula === h.akhir ? h.mula : `${h.mula} hingga${h.akhir}`} 
                 <span class="font-bold text-indigo-700">(${h.bilHari} Hari)</span>
               </p>
             </div>
