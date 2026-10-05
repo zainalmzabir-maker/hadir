@@ -323,6 +323,7 @@
             <p class="text-[11px] text-indigo-600 mt-0.5" id="statSchoolDaysSubtext">Sela Masa Terpilih</p>
           </div>
 
+          <!-- KAD TIDAK HADIR SEMALAM / HARI PERSEKOLAHAN SEBELUMNYA -->
           <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
             <p class="text-xs font-bold text-amber-700" id="statYesterdayTitle">Tidak Hadir Semalam</p>
             <p class="text-3xl font-black text-amber-800 mt-1" id="statYesterdayAbsent">0</p>
@@ -641,7 +642,7 @@
     window.onload = function() {
       initClock();
       initDefaultDate();
-      loadCachedAttendance(); // <--- Muat turun data kehadiran yang tersimpan dalam cache serta-merta
+      loadCachedAttendance();
       loadLocalOrRemoteStudents();
       loadCachedHolidays();
       updateRumusanDbDateDisplay();
@@ -672,7 +673,6 @@
       return `${y}-${m}-${day}`;
     }
 
-    // Mengambil cache kehadiran tempatan dari pelayar
     function loadCachedAttendance() {
       const cached = localStorage.getItem('smkka_attendance_cache');
       if (cached) {
@@ -683,13 +683,30 @@
     }
 
     // =========================================================================
+    // FUNGSI NYAH-DUPLIKASI (DEDUPLICATION): MENGELAKKAN DATA BERTINDIH
+    // =========================================================================
+    function getDeduplicatedAttendance(records) {
+      if (!records || !Array.isArray(records)) return [];
+      const map = new Map();
+      records.forEach(r => {
+        const dStr = formatDateISO(parseDateSafe(r.tarikh));
+        if (!dStr || !r.kelas) return;
+        const key = `${dStr}___${String(r.kelas).trim()}`;
+        // Rekod yang muncul terkemudian (latest) akan menggantikan rekod terdahulu
+        map.set(key, r);
+      });
+      return Array.from(map.values());
+    }
+
+    // =========================================================================
     // HARI PERSEKOLAHAN TERAKHIR SEBELUM TARIKH RUJUKAN
     // =========================================================================
     function getPreviousSchoolDayWithData(refDateStr) {
       const refDate = parseDateSafe(refDateStr) || new Date();
       const candidateDates = [];
+      const cleanRecords = getDeduplicatedAttendance(attendanceRecords);
       
-      attendanceRecords.forEach(r => {
+      cleanRecords.forEach(r => {
         const rDate = parseDateSafe(r.tarikh);
         if (!rDate) return;
         const dStr = formatDateISO(rDate);
@@ -953,7 +970,7 @@
     }
 
     // =========================================================================
-    // PAPARAN SENARAI MURID: DILENGKAPI NOTIS STATUS KELAS TELAH DIISI
+    // PAPARAN SENARAI MURID PELAPORAN
     // =========================================================================
     function renderStudentList() {
       const cls = document.getElementById('selectKelas').value;
@@ -963,15 +980,14 @@
       container.innerHTML = '';
       document.getElementById('badgeEnrolmen').innerText = list.length;
 
-      // Cari rekod sedia ada bagi kelas dan tarikh ini
-      const existingRecords = attendanceRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === tarikh);
+      const cleanRecords = getDeduplicatedAttendance(attendanceRecords);
+      const existingRecords = cleanRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === tarikh);
       const lastRecord = existingRecords.length > 0 ? existingRecords[existingRecords.length - 1] : null;
       const existingAbsentMap = {};
 
       const bannerEl = document.getElementById('classFilledBanner');
       const btnSaveEl = document.getElementById('btnSave');
 
-      // Semak jika rekod telah diisi sebelum ini
       if (lastRecord) {
         if (bannerEl) {
           bannerEl.classList.remove('hidden');
@@ -1057,7 +1073,7 @@
     }
 
     // =========================================================================
-    // SIMPAN KEHADIRAN & KEMASKINI CACHE SERTA-MERTA
+    // SIMPAN KEHADIRAN (DENGAN REKOD BEBAS DUPLIKASI)
     // =========================================================================
     async function saveAttendance() {
       const btn = document.getElementById('btnSave');
@@ -1067,10 +1083,13 @@
       const list = STUDENTS_DATA[cls] || [];
       
       const absentees = [];
+      const seenNames = new Set();
+
       if (statusHari !== 'Cuti') {
         list.forEach((name, idx) => {
           const chk = document.getElementById(`absent_${idx}`);
-          if (chk && chk.checked) {
+          if (chk && chk.checked && !seenNames.has(name)) {
+            seenNames.add(name);
             const reason = document.getElementById(`reason_${idx}`).value;
             absentees.push({ nama: name, sebab: reason });
           }
@@ -1090,7 +1109,6 @@
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
 
-      // Simpan ke memori tempatan secara serta-merta supaya data kekal wujud
       const nowClock = new Date().toLocaleTimeString('ms-MY', { hour12: false });
       const newRec = {
         id: "REC_" + Date.now(),
@@ -1104,7 +1122,7 @@
         statusHari: payload.statusHari
       };
 
-      // Gantikan rekod sedia ada atau tambah rekod baru
+      // Gantikan rekod sedia ada dalam memori (elak duplikasi)
       const existingIdx = attendanceRecords.findIndex(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === tarikh);
       if (existingIdx >= 0) {
         attendanceRecords[existingIdx] = newRec;
@@ -1158,7 +1176,6 @@
         if (Array.isArray(data.attendance)) {
           attendanceRecords = data.attendance;
           localStorage.setItem('smkka_attendance_cache', JSON.stringify(attendanceRecords));
-          // Pastikan senarai murid dipanggil semula setelah data kehadiran tiba
           renderStudentList();
           renderDashboard();
           renderRumusan();
@@ -1171,7 +1188,7 @@
     }
 
     // =========================================================================
-    // RENDER DASHBOARD: SENTIASA MENGGUNAKAN TARIKH SEMASA SEBENAR (TODAY)
+    // RENDER DASHBOARD
     // =========================================================================
     function renderDashboard() {
       const actualToday = getActualTodayISO();
@@ -1191,8 +1208,10 @@
       classes.forEach(c => totalStudentsSchool += STUDENTS_DATA[c].length);
       document.getElementById('dashTotalStudents').innerText = totalStudentsSchool;
 
+      const cleanRecords = getDeduplicatedAttendance(attendanceRecords);
+
       classes.forEach(cls => {
-        const classRecordsToday = attendanceRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === actualToday);
+        const classRecordsToday = cleanRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === actualToday);
         const lastRecord = classRecordsToday.length > 0 ? classRecordsToday[classRecordsToday.length - 1] : null;
         const tr = document.createElement('tr');
         tr.className = "group hover:bg-slate-50/80 transition";
@@ -1304,7 +1323,7 @@
       document.getElementById('dashTotalAbsentToday').innerText = totalAbsentToday;
       if (completedCount > 0) {
         const auditedEnrol = classes.reduce((sum, c) => {
-          const rec = attendanceRecords.filter(r => r.kelas === c && formatDateISO(parseDateSafe(r.tarikh)) === actualToday);
+          const rec = cleanRecords.filter(r => r.kelas === c && formatDateISO(parseDateSafe(r.tarikh)) === actualToday);
           return rec.length > 0 ? sum + STUDENTS_DATA[c].length : sum;
         }, 0);
         const overallPct = auditedEnrol > 0 ? ((totalPresentToday / auditedEnrol) * 100).toFixed(1) : 0;
@@ -1353,17 +1372,21 @@
     }
 
     // =========================================================================
-    // RENDER RUMUSAN: "TIDAK HADIR SEMALAM" BERASASKAN TARIKH RUJUKAN
+    // RENDER RUMUSAN: BEBAS DARI MASALAH NAMA BERTINDIH
     // =========================================================================
     function renderRumusan() {
       const isCustom = (activeRange === 'custom' && !!customSelectedDate);
       const refDateStr = isCustom ? customSelectedDate : getActualTodayISO();
       const refDate = parseDateSafe(refDateStr) || new Date();
 
+      // Gunakan rekod yang telah dinyah-duplikasi
+      const cleanRecords = getDeduplicatedAttendance(attendanceRecords);
+
       const targetYesterdayStr = getPreviousSchoolDayWithData(refDateStr);
       
       updateRumusanDbDateDisplay();
 
+      // 1. Data Ketidakhadiran Semalam / Hari Sebelumnya
       const statTitleEl = document.getElementById('statYesterdayTitle');
       if (statTitleEl) {
         statTitleEl.innerText = isCustom ? 'Tidak Hadir Hari Sebelumnya' : 'Tidak Hadir Semalam';
@@ -1377,7 +1400,7 @@
       document.getElementById('statYesterdayDateText').innerText = `Tarikh: ${targetYesterdayStr}`;
       document.getElementById('yesterdayDisplayLabel').innerText = targetYesterdayStr;
 
-      const yesterdayRecords = attendanceRecords.filter(r => {
+      const yesterdayRecords = cleanRecords.filter(r => {
         const dStr = formatDateISO(parseDateSafe(r.tarikh));
         return dStr === targetYesterdayStr && r.statusHari !== 'Cuti' && !findHolidayForDate(dStr);
       });
@@ -1434,7 +1457,7 @@
         });
       }
 
-      // Kiraan Sela Minggu
+      // 2. Kiraan Sela Minggu
       const dayOfWeek = refDate.getDay();
       const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
       const mondayDate = new Date(refDate);
@@ -1445,7 +1468,7 @@
       const mondayStr = formatDateISO(mondayDate);
       const saturdayStr = formatDateISO(saturdayDate);
 
-      // Label Sela Masa
+      // 3. Label Sela Masa
       let rangeLabel = `Hari Ini (${refDateStr})`;
       if (activeRange === 'yesterday') {
         rangeLabel = `Semalam (${targetYesterdayStr})`;
@@ -1468,8 +1491,8 @@
       document.getElementById('headingSelectedRange').innerText = rangeLabel;
       document.getElementById('subtextSelectedRange').innerText = `Menunjukkan senarai murid tidak hadir untuk sela masa: ${rangeLabel}`;
 
-      // Penapisan Rekod Kehadiran
-      const filtered = attendanceRecords.filter(r => {
+      // 4. Penapisan Rekod Kehadiran dari Rekod Bersih (Bebas Pertindihan)
+      const filtered = cleanRecords.filter(r => {
         const rDate = parseDateSafe(r.tarikh);
         if (!rDate) return false;
         const rDateStr = formatDateISO(rDate);
@@ -1499,7 +1522,7 @@
         return true;
       });
 
-      // Bilangan Hari Persekolahan Unik
+      // 5. Bilangan Hari Persekolahan Unik
       const uniqueSchoolDates = new Set();
       let gantiCount = 0;
 
@@ -1515,12 +1538,13 @@
       document.getElementById('statSchoolDaysCount').innerText = `${schoolDaysTotal} Hari`;
       document.getElementById('statSchoolDaysSubtext').innerText = gantiCount > 0 ? `Termasuk ${gantiCount} hari Sabtu ganti` : `Hari persekolahan selesai`;
 
-      // Analisis Ketidakhadiran
+      // 6. Analisis Ketidakhadiran (Penyahduplikasian Peringkat Akhir)
       let totalAbsentCount = 0;
       let totalHadirSum = 0;
       let totalEnrolSum = 0;
       const absentFreqMap = {};
       const studentAllAbsences = [];
+      const duplicateFilterSet = new Set(); // Kunci elak nama sama pada tarikh & kelas sama
 
       filtered.forEach(record => {
         totalHadirSum += Number(record.hadir) || 0;
@@ -1533,18 +1557,26 @@
           }
           if (Array.isArray(absList)) {
             absList.forEach(a => {
-              const proc = processAbsenteeReason(a.sebab, record.timestamp);
-              totalAbsentCount++;
-              const key = `${a.nama}___${record.kelas}`;
-              absentFreqMap[key] = (absentFreqMap[key] || 0) + 1;
-              studentAllAbsences.push({
-                tarikh: formatDateISO(parseDateSafe(record.tarikh)) || record.tarikh,
-                kelas: record.kelas,
-                nama: a.nama,
-                sebab: proc.actual,
-                sebabDisplay: proc.display,
-                isApung: proc.actual === 'Apung (48 jam)' && !proc.isExpired
-              });
+              const rTarikhStr = formatDateISO(parseDateSafe(record.tarikh)) || record.tarikh;
+              const dupKey = `${rTarikhStr}___${record.kelas}___${a.nama}`;
+
+              // Elakkan rekod bertindih jika tersimpan dua kali
+              if (!duplicateFilterSet.has(dupKey)) {
+                duplicateFilterSet.add(dupKey);
+
+                const proc = processAbsenteeReason(a.sebab, record.timestamp);
+                totalAbsentCount++;
+                const key = `${a.nama}___${record.kelas}`;
+                absentFreqMap[key] = (absentFreqMap[key] || 0) + 1;
+                studentAllAbsences.push({
+                  tarikh: rTarikhStr,
+                  kelas: record.kelas,
+                  nama: a.nama,
+                  sebab: proc.actual,
+                  sebabDisplay: proc.display,
+                  isApung: proc.actual === 'Apung (48 jam)' && !proc.isExpired
+                });
+              }
             });
           }
         }
@@ -1556,7 +1588,7 @@
       const avgPct = totalEnrolSum > 0 ? ((totalHadirSum / totalEnrolSum) * 100).toFixed(1) : (filtered.length > 0 ? '100' : '0.0');
       document.getElementById('statAvgAttendance').innerText = `${avgPct}%`;
 
-      // Jadual Senarai Murid Tidak Hadir
+      // 7. Jadual Senarai Murid Tidak Hadir
       const detailTbody = document.getElementById('tableAbsentByClass');
       detailTbody.innerHTML = '';
 
@@ -1586,7 +1618,7 @@
         });
       }
 
-      // Kekerapan Tidak Hadir
+      // 8. Kekerapan Tidak Hadir
       const frequentListEl = document.getElementById('listFrequentAbsent');
       frequentListEl.innerHTML = '';
       const sortedAbsent = Object.entries(absentFreqMap).sort((a, b) => b[1] - a[1]);
@@ -1612,7 +1644,7 @@
         });
       }
 
-      // Anugerah 100% Hadir
+      // 9. Anugerah 100% Hadir
       const diligentListEl = document.getElementById('listDiligentStudents');
       diligentListEl.innerHTML = '';
       let diligentCount = 0;
@@ -1646,7 +1678,7 @@
     }
 
     // =========================================================================
-    // LOGIK ADMIN: PENGURUSAN CUTI PUKAL (BAHAGIAN 1 ADMIN)
+    // LOGIK ADMIN: PENGURUSAN CUTI PUKAL
     // =========================================================================
     function toggleHolidayInputMode() {
       const mode = document.querySelector('input[name="radioJenisCuti"]:checked').value;
@@ -1844,7 +1876,7 @@
             <div>
               <p class="text-xs font-bold text-slate-800">${h.nama}</p>
               <p class="text-[11px] text-slate-500 font-medium">
-                ${h.mula === h.akhir ? h.mula : `${h.mula} hingga${h.akhir}`} 
+                ${h.mula === h.akhir ? h.mula : `${h.mula} hingga ${h.akhir}`} 
                 <span class="font-bold text-indigo-700">(${h.bilHari} Hari)</span>
               </p>
             </div>
@@ -1858,7 +1890,7 @@
     }
 
     // =========================================================================
-    // LOGIK ADMIN: PENGESAHAN KATA LALUAN & KEMASKINI ENROLMEN EXCEL
+    // LOGIK ADMIN: PENGESAHAN KATA LALUAN & EXCEL
     // =========================================================================
     async function verifyAdminPassword() {
       const inputEl = document.getElementById('adminPasswordInput');
