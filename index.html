@@ -188,7 +188,6 @@
 
     <!-- ==================== PAGE 2: DASHBOARD ==================== -->
     <section id="page-dashboard" class="hidden space-y-6">
-      <!-- 4 KAD RINGKASAN UTAMA -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
@@ -230,7 +229,6 @@
 
       <!-- 2 KAD BAHARU: KELAS BELUM LENGKAP HARI INI & SEMALAM -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <!-- KAD 1: KELAS BELUM LENGKAP HARI INI -->
         <div class="bg-white rounded-2xl border border-rose-200 shadow-sm overflow-hidden flex flex-col">
           <div class="px-5 py-3.5 border-b border-rose-100 bg-rose-50/60 flex items-center justify-between gap-3">
             <div class="flex items-center gap-2">
@@ -245,11 +243,9 @@
             <span id="dashPendingTodayBadge" class="text-xs bg-rose-100 text-rose-800 font-extrabold px-2.5 py-0.5 rounded-full">0 Kelas</span>
           </div>
           <div class="p-4 flex-1" id="dashPendingTodayList">
-            <!-- Senarai cip kelas belum lengkap dijana secara dinamik -->
           </div>
         </div>
 
-        <!-- KAD 2: KELAS BELUM LENGKAP SEMALAM -->
         <div class="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden flex flex-col">
           <div class="px-5 py-3.5 border-b border-amber-100 bg-amber-50/60 flex items-center justify-between gap-3">
             <div class="flex items-center gap-2">
@@ -264,7 +260,6 @@
             <span id="dashPendingYesterdayBadge" class="text-xs bg-amber-100 text-amber-800 font-extrabold px-2.5 py-0.5 rounded-full">0 Kelas</span>
           </div>
           <div class="p-4 flex-1" id="dashPendingYesterdayList">
-            <!-- Senarai cip kelas tertunggak semalam dijana secara dinamik -->
           </div>
         </div>
       </div>
@@ -368,7 +363,6 @@
             <p class="text-[11px] text-indigo-600 mt-0.5" id="statSchoolDaysSubtext">Sela Masa Terpilih</p>
           </div>
 
-          <!-- KAD TIDAK HADIR SEMALAM / HARI PERSEKOLAHAN SEBELUMNYA -->
           <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
             <p class="text-xs font-bold text-amber-700" id="statYesterdayTitle">Tidak Hadir Semalam</p>
             <p class="text-3xl font-black text-amber-800 mt-1" id="statYesterdayAbsent">0</p>
@@ -395,7 +389,7 @@
         </div>
       </div>
 
-      <!-- JADUAL 1: SENARAI TIDAK HADIR MENGIKUT PENAPIS SELA TERPILIH -->
+      <!-- ==================== JADUAL 1: SENARAI TIDAK HADIR DENGAN PENAPIS & SUSUNAN ==================== -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 bg-blue-50/40 flex flex-wrap justify-between items-center gap-3">
           <div>
@@ -407,14 +401,77 @@
           </div>
           <span class="bg-rose-100 text-rose-800 font-extrabold text-xs px-3 py-1 rounded-full" id="filterResultCountBadge">0 Murid</span>
         </div>
+
+        <!-- TOOLBAR PENAPIS & SUSUNAN (KELAS, NAMA, SEBAB) -->
+        <div class="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Penapis Kelas -->
+            <div class="flex items-center gap-1.5">
+              <label for="filterAbsentClassSelect" class="font-bold text-slate-600"><i class="fa-solid fa-school text-slate-400 mr-1"></i>Kelas:</label>
+              <select id="filterAbsentClassSelect" onchange="renderAbsentTableUI()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 font-semibold text-slate-700 outline-none focus:ring-1 focus:ring-blue-600">
+                <option value="all">Semua Kelas</option>
+              </select>
+            </div>
+
+            <!-- Penapis Sebab -->
+            <div class="flex items-center gap-1.5">
+              <label for="filterAbsentReasonSelect" class="font-bold text-slate-600"><i class="fa-solid fa-tag text-slate-400 mr-1"></i>Sebab:</label>
+              <select id="filterAbsentReasonSelect" onchange="renderAbsentTableUI()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 font-semibold text-slate-700 outline-none focus:ring-1 focus:ring-blue-600">
+                <option value="all">Semua Sebab</option>
+                <option value="Sakit / Demam">Sakit / Demam</option>
+                <option value="Kecemasan Keluarga">Kecemasan Keluarga</option>
+                <option value="Urusan Rasmi">Urusan Rasmi</option>
+                <option value="Masalah Pengangkutan">Masalah Pengangkutan</option>
+                <option value="Apung (48 jam)">Apung (48 jam)</option>
+                <option value="Tanpa Kenyataan (Ponteng)">Tanpa Kenyataan (Ponteng)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Susun Mengikut (Sort Field) -->
+          <div class="flex items-center gap-1.5">
+            <label for="sortAbsentFieldSelect" class="font-bold text-slate-600"><i class="fa-solid fa-arrow-down-a-z text-slate-400 mr-1"></i>Susun Ikut:</label>
+            <select id="sortAbsentFieldSelect" onchange="onSortDropdownChange()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 font-semibold text-slate-700 outline-none focus:ring-1 focus:ring-blue-600">
+              <option value="kelas_asc" selected>Kelas (A &rarr; Z)</option>
+              <option value="kelas_desc">Kelas (Z &rarr; A)</option>
+              <option value="nama_asc">Nama Murid (A &rarr; Z)</option>
+              <option value="nama_desc">Nama Murid (Z &rarr; A)</option>
+              <option value="sebab_asc">Sebab Ketidakhadiran (A &rarr; Z)</option>
+              <option value="sebab_desc">Sebab Ketidakhadiran (Z &rarr; A)</option>
+              <option value="tarikh_desc">Tarikh (Terkini)</option>
+              <option value="tarikh_asc">Tarikh (Terdahulu)</option>
+            </select>
+          </div>
+        </div>
+
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-b border-slate-200">
+            <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase border-b border-slate-200 select-none">
               <tr>
-                <th class="py-3 px-6">Tarikh</th>
-                <th class="py-3 px-6">Kelas</th>
-                <th class="py-3 px-6">Nama Murid</th>
-                <th class="py-3 px-6">Sebab Ketidakhadiran</th>
+                <th onclick="toggleSortHeader('tarikh')" class="py-3 px-6 cursor-pointer hover:bg-slate-100 transition" title="Klik untuk susun mengikut Tarikh">
+                  <div class="flex items-center gap-1.5">
+                    <span>Tarikh</span>
+                    <i id="sortIcon_tarikh" class="fa-solid fa-sort text-slate-400 text-[10px]"></i>
+                  </div>
+                </th>
+                <th onclick="toggleSortHeader('kelas')" class="py-3 px-6 cursor-pointer hover:bg-slate-100 transition" title="Klik untuk susun mengikut Kelas">
+                  <div class="flex items-center gap-1.5">
+                    <span>Kelas</span>
+                    <i id="sortIcon_kelas" class="fa-solid fa-sort-up text-blue-700 text-[10px]"></i>
+                  </div>
+                </th>
+                <th onclick="toggleSortHeader('nama')" class="py-3 px-6 cursor-pointer hover:bg-slate-100 transition" title="Klik untuk susun mengikut Nama Murid">
+                  <div class="flex items-center gap-1.5">
+                    <span>Nama Murid</span>
+                    <i id="sortIcon_nama" class="fa-solid fa-sort text-slate-400 text-[10px]"></i>
+                  </div>
+                </th>
+                <th onclick="toggleSortHeader('sebab')" class="py-3 px-6 cursor-pointer hover:bg-slate-100 transition" title="Klik untuk susun mengikut Sebab Ketidakhadiran">
+                  <div class="flex items-center gap-1.5">
+                    <span>Sebab Ketidakhadiran</span>
+                    <i id="sortIcon_sebab" class="fa-solid fa-sort text-slate-400 text-[10px]"></i>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody id="tableAbsentByClass" class="divide-y divide-slate-100">
@@ -678,6 +735,11 @@
     let customSelectedDate = '';
     
     let HOLIDAYS_DATA = [];
+
+    // Pembolehubah Penapis & Susunan Bagi Jadual Rumusan Murid Tidak Hadir
+    let currentRumusanAbsences = [];
+    let currentSortColumn = 'kelas'; // 'kelas', 'nama', 'sebab', 'tarikh'
+    let currentSortOrder = 'asc';    // 'asc', 'desc'
 
     let lastStudentDbDate = localStorage.getItem('smkka_last_db_date') || '';
     let sessionAdminPassword = '';
@@ -971,9 +1033,6 @@
       updateRumusanDbDateDisplay();
     }
 
-    // =========================================================================
-    // PILIHAN DEFAULT ADALAH KOSONG (TIADA KELAS TERPILIH)
-    // =========================================================================
     function populateClassSelect() {
       const select = document.getElementById('selectKelas');
       const currentVal = select.value;
@@ -991,7 +1050,26 @@
       } else {
         select.value = "";
       }
+
+      // Selaraskan juga dropdown penapis kelas pada tab Rumusan
+      populateRumusanClassFilter();
       renderStudentList();
+    }
+
+    // Isikan pilihan kelas dalam dropdown penapis Rumusan
+    function populateRumusanClassFilter() {
+      const filterSelect = document.getElementById('filterAbsentClassSelect');
+      if (!filterSelect) return;
+      const curFilter = filterSelect.value || "all";
+      
+      filterSelect.innerHTML = '<option value="all">Semua Kelas</option>';
+      Object.keys(STUDENTS_DATA).forEach(cls => {
+        const opt = document.createElement('option');
+        opt.value = cls;
+        opt.textContent = `Kelas ${cls}`;
+        filterSelect.appendChild(opt);
+      });
+      filterSelect.value = curFilter;
     }
 
     function switchPage(pageId) {
@@ -1015,7 +1093,7 @@
     }
 
     // =========================================================================
-    // SENARAI MURID PELAPORAN: TUTUP JIKA TIADA KELAS DIPILIH
+    // PAPARAN SENARAI MURID PELAPORAN
     // =========================================================================
     function renderStudentList() {
       const cls = document.getElementById('selectKelas').value;
@@ -1024,7 +1102,6 @@
       const bannerEl = document.getElementById('classFilledBanner');
       const btnSaveEl = document.getElementById('btnSave');
 
-      // JIKA TIADA KELAS DIPILIH (PILIHAN DEFAULT)
       if (!cls || !STUDENTS_DATA[cls]) {
         if (bannerEl) bannerEl.classList.add('hidden');
         document.getElementById('badgeEnrolmen').innerText = "0";
@@ -1049,7 +1126,6 @@
         return;
       }
 
-      // KELAS TELAH DIPILIH: AKTIFKAN BUTANG SIMPAN
       if (btnSaveEl) {
         btnSaveEl.disabled = false;
         btnSaveEl.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -1154,9 +1230,6 @@
       renderStudentList();
     }
 
-    // =========================================================================
-    // SIMPAN KEHADIRAN
-    // =========================================================================
     async function saveAttendance() {
       const btn = document.getElementById('btnSave');
       const cls = document.getElementById('selectKelas').value;
@@ -1275,7 +1348,7 @@
     }
 
     // =========================================================================
-    // RENDER DASHBOARD: KINI LENGKAP DENGAN 2 KAD BELUM LENGKAP HARI INI & SEMALAM
+    // RENDER DASHBOARD
     // =========================================================================
     function renderDashboard() {
       const actualToday = getActualTodayISO();
@@ -1301,7 +1374,6 @@
       const pendingTodayClasses = [];
       const pendingYesterdayClasses = [];
 
-      // 1. Kenal pasti kelas hari ini
       classes.forEach(cls => {
         const classRecordsToday = cleanRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === actualToday);
         const lastRecord = classRecordsToday.length > 0 ? classRecordsToday[classRecordsToday.length - 1] : null;
@@ -1323,7 +1395,7 @@
             if (Array.isArray(lastRecord.absentees)) {
               absList = lastRecord.absentees;
             } else if (typeof lastRecord.absentees === 'string') {
-              try { absList = JSON.parse(lastRecord.absentees); } catch(e) { absList = []; }
+              try { absList = JSON.parse(absList); } catch(e) { absList = []; }
             }
           }
 
@@ -1412,7 +1484,6 @@
         tbody.appendChild(tr);
       });
 
-      // 2. Kenal pasti kelas semalam
       classes.forEach(cls => {
         const classRecordsYesterday = cleanRecords.filter(r => r.kelas === cls && formatDateISO(parseDateSafe(r.tarikh)) === targetYesterdayStr);
         if (classRecordsYesterday.length === 0) {
@@ -1420,7 +1491,6 @@
         }
       });
 
-      // 3. Kemas kini Kad Belum Lengkap Hari Ini
       const pendingTodayDateEl = document.getElementById('dashPendingTodayDate');
       if (pendingTodayDateEl) pendingTodayDateEl.innerText = actualToday;
       
@@ -1453,7 +1523,6 @@
         }
       }
 
-      // 4. Kemas kini Kad Belum Lengkap Semalam
       const pendingYestDateEl = document.getElementById('dashPendingYesterdayDate');
       if (pendingYestDateEl) pendingYestDateEl.innerText = targetYesterdayStr;
       
@@ -1543,7 +1612,117 @@
     }
 
     // =========================================================================
-    // RENDER RUMUSAN
+    // FUNGSI PENAPIS & SUSUNAN UNTUK JADUAL RUMUSAN MURID TIDAK HADIR
+    // =========================================================================
+    function onSortDropdownChange() {
+      const val = document.getElementById('sortAbsentFieldSelect').value;
+      const parts = val.split('_');
+      currentSortColumn = parts[0];
+      currentSortOrder = parts[1];
+      renderAbsentTableUI();
+    }
+
+    function toggleSortHeader(col) {
+      if (currentSortColumn === col) {
+        currentSortOrder = (currentSortOrder === 'asc') ? 'desc' : 'asc';
+      } else {
+        currentSortColumn = col;
+        currentSortOrder = (col === 'tarikh') ? 'desc' : 'asc';
+      }
+
+      const sortSelect = document.getElementById('sortAbsentFieldSelect');
+      const expectedVal = `${currentSortColumn}_${currentSortOrder}`;
+      if (sortSelect && sortSelect.querySelector(`option[value="${expectedVal}"]`)) {
+        sortSelect.value = expectedVal;
+      }
+      renderAbsentTableUI();
+    }
+
+    function updateSortHeaderIcons() {
+      ['tarikh', 'kelas', 'nama', 'sebab'].forEach(col => {
+        const icon = document.getElementById(`sortIcon_${col}`);
+        if (!icon) return;
+        if (currentSortColumn === col) {
+          icon.className = `fa-solid ${currentSortOrder === 'asc' ? 'fa-sort-up' : 'fa-sort-down'} text-blue-700 text-[10px]`;
+        } else {
+          icon.className = 'fa-solid fa-sort text-slate-400 text-[10px]';
+        }
+      });
+    }
+
+    function renderAbsentTableUI() {
+      const detailTbody = document.getElementById('tableAbsentByClass');
+      if (!detailTbody) return;
+      detailTbody.innerHTML = '';
+
+      updateSortHeaderIcons();
+
+      const selectedClass = document.getElementById('filterAbsentClassSelect') ? document.getElementById('filterAbsentClassSelect').value : 'all';
+      const selectedReason = document.getElementById('filterAbsentReasonSelect') ? document.getElementById('filterAbsentReasonSelect').value : 'all';
+
+      // 1. Tapis mengikut Kelas & Sebab
+      let displayList = currentRumusanAbsences.filter(item => {
+        if (selectedClass !== 'all' && item.kelas !== selectedClass) {
+          return false;
+        }
+        if (selectedReason !== 'all') {
+          if (selectedReason === 'Apung (48 jam)') {
+            if (!item.isApung && item.sebab !== 'Apung (48 jam)') return false;
+          } else {
+            if (item.sebab !== selectedReason) return false;
+          }
+        }
+        return true;
+      });
+
+      // 2. Susun (Sorting)
+      displayList.sort((a, b) => {
+        let comp = 0;
+        if (currentSortColumn === 'tarikh') {
+          comp = a.tarikh.localeCompare(b.tarikh);
+        } else if (currentSortColumn === 'kelas') {
+          comp = a.kelas.localeCompare(b.kelas, undefined, { numeric: true, sensitivity: 'base' });
+        } else if (currentSortColumn === 'nama') {
+          comp = a.nama.localeCompare(b.nama, undefined, { sensitivity: 'base' });
+        } else if (currentSortColumn === 'sebab') {
+          comp = a.sebabDisplay.localeCompare(b.sebabDisplay, undefined, { sensitivity: 'base' });
+        }
+        return (currentSortOrder === 'asc') ? comp : -comp;
+      });
+
+      // Kemas kini Lencana Hasil Tapisan
+      const badgeEl = document.getElementById('filterResultCountBadge');
+      if (badgeEl) badgeEl.innerText = `${displayList.length} Murid`;
+
+      if (displayList.length === 0) {
+        detailTbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran yang sepadan dengan penapis ini.</td></tr>`;
+      } else {
+        displayList.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+            <td class="py-2.5 px-6 font-mono text-xs text-slate-600">${row.tarikh}</td>
+            <td class="py-2.5 px-6 font-bold text-slate-800">${row.kelas}</td>
+            <td class="py-2.5 px-6 font-semibold text-slate-700">${row.nama}</td>
+            <td class="py-2.5 px-6">
+              ${row.isApung ? `
+                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded text-xs font-semibold">
+                  <i class="fa-regular fa-clock text-[10px]"></i> ${row.sebabDisplay}
+                </span>
+              ` : `
+                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded text-xs font-medium">
+                  ${row.sebabDisplay}
+                </span>
+              `}
+            </td>
+          `;
+          detailTbody.appendChild(tr);
+        });
+      }
+    }
+
+    // =========================================================================
+    // RENDER RUMUSAN UTAMA
     // =========================================================================
     function renderRumusan() {
       const isCustom = (activeRange === 'custom' && !!customSelectedDate);
@@ -1745,40 +1924,15 @@
       });
 
       document.getElementById('statTotalAbsent').innerText = totalAbsentCount;
-      document.getElementById('filterResultCountBadge').innerText = `${totalAbsentCount} Murid`;
 
       const avgPct = totalEnrolSum > 0 ? ((totalHadirSum / totalEnrolSum) * 100).toFixed(1) : (filtered.length > 0 ? '100' : '0.0');
       document.getElementById('statAvgAttendance').innerText = `${avgPct}%`;
 
-      const detailTbody = document.getElementById('tableAbsentByClass');
-      detailTbody.innerHTML = '';
+      // Simpan data ke pembolehubah global & jalankan tapisan/susunan
+      currentRumusanAbsences = studentAllAbsences;
+      renderAbsentTableUI();
 
-      if (studentAllAbsences.length === 0) {
-        detailTbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs italic">Tiada rekod ketidakhadiran bagi sela masa "${rangeLabel}".</td></tr>`;
-      } else {
-        studentAllAbsences.forEach(row => {
-          const tr = document.createElement('tr');
-          tr.className = "hover:bg-slate-50 transition";
-          tr.innerHTML = `
-            <td class="py-2.5 px-6 font-mono text-xs text-slate-600">${row.tarikh}</td>
-            <td class="py-2.5 px-6 font-bold text-slate-800">${row.kelas}</td>
-            <td class="py-2.5 px-6 font-semibold text-slate-700">${row.nama}</td>
-            <td class="py-2.5 px-6">
-              ${row.isApung ? `
-                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded text-xs font-semibold">
-                  <i class="fa-regular fa-clock text-[10px]"></i> ${row.sebabDisplay}
-                </span>
-              ` : `
-                <span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded text-xs font-medium">
-                  ${row.sebabDisplay}
-                </span>
-              `}
-            </td>
-          `;
-          detailTbody.appendChild(tr);
-        });
-      }
-
+      // Kekerapan Tidak Hadir
       const frequentListEl = document.getElementById('listFrequentAbsent');
       frequentListEl.innerHTML = '';
       const sortedAbsent = Object.entries(absentFreqMap).sort((a, b) => b[1] - a[1]);
@@ -1804,6 +1958,7 @@
         });
       }
 
+      // Anugerah 100% Hadir
       const diligentListEl = document.getElementById('listDiligentStudents');
       diligentListEl.innerHTML = '';
       let diligentCount = 0;
