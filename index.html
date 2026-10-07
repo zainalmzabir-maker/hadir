@@ -89,7 +89,7 @@
 
         <div class="p-6 space-y-5">
 
-          <!-- NOTIS STATUS: APABILA KELAS TELAH DIISI DENGAN NOTA KEMASKINI -->
+          <!-- NOTIS STATUS: APABILA KELAS TELAH DIISI -->
           <div id="classFilledBanner" class="hidden p-4 bg-emerald-50 border border-emerald-300 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-emerald-900 shadow-xs">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-xl bg-emerald-200 text-emerald-800 flex items-center justify-center text-xl flex-shrink-0">
@@ -130,7 +130,6 @@
               <input type="date" id="inputTarikh" onchange="onTarikhChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
             </div>
 
-            <!-- RUANG STATUS HARI PERSEKOLAHAN -->
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Status Hari Persekolahan</label>
               <select id="selectStatusHari" onchange="onStatusHariChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
@@ -140,7 +139,6 @@
               </select>
             </div>
 
-            <!-- PILIHAN KELAS DENGAN PILIHAN DEFAULT KOSONG -->
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Pilih Kelas</label>
               <select id="selectKelas" onchange="renderStudentList()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
@@ -227,7 +225,7 @@
         </div>
       </div>
 
-      <!-- 2 KAD BAHARU: KELAS BELUM LENGKAP HARI INI & SEMALAM -->
+      <!-- 2 KAD: KELAS BELUM LENGKAP HARI INI & SEMALAM -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div class="bg-white rounded-2xl border border-rose-200 shadow-sm overflow-hidden flex flex-col">
           <div class="px-5 py-3.5 border-b border-rose-100 bg-rose-50/60 flex items-center justify-between gap-3">
@@ -402,10 +400,9 @@
           <span class="bg-rose-100 text-rose-800 font-extrabold text-xs px-3 py-1 rounded-full" id="filterResultCountBadge">0 Murid</span>
         </div>
 
-        <!-- TOOLBAR PENAPIS & SUSUNAN (KELAS, NAMA, SEBAB) -->
+        <!-- TOOLBAR PENAPIS & SUSUNAN -->
         <div class="px-6 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
           <div class="flex flex-wrap items-center gap-3">
-            <!-- Penapis Kelas -->
             <div class="flex items-center gap-1.5">
               <label for="filterAbsentClassSelect" class="font-bold text-slate-600"><i class="fa-solid fa-school text-slate-400 mr-1"></i>Kelas:</label>
               <select id="filterAbsentClassSelect" onchange="renderAbsentTableUI()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 font-semibold text-slate-700 outline-none focus:ring-1 focus:ring-blue-600">
@@ -413,7 +410,6 @@
               </select>
             </div>
 
-            <!-- Penapis Sebab -->
             <div class="flex items-center gap-1.5">
               <label for="filterAbsentReasonSelect" class="font-bold text-slate-600"><i class="fa-solid fa-tag text-slate-400 mr-1"></i>Sebab:</label>
               <select id="filterAbsentReasonSelect" onchange="renderAbsentTableUI()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 font-semibold text-slate-700 outline-none focus:ring-1 focus:ring-blue-600">
@@ -428,7 +424,6 @@
             </div>
           </div>
 
-          <!-- Susun Mengikut (Sort Field) -->
           <div class="flex items-center gap-1.5">
             <label for="sortAbsentFieldSelect" class="font-bold text-slate-600"><i class="fa-solid fa-arrow-down-a-z text-slate-400 mr-1"></i>Susun Ikut:</label>
             <select id="sortAbsentFieldSelect" onchange="onSortDropdownChange()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 font-semibold text-slate-700 outline-none focus:ring-1 focus:ring-blue-600">
@@ -505,7 +500,7 @@
         </div>
       </div>
 
-      <!-- JADUAL 2: SENARAI KETIDAKHADIRAN SEMALAM / HARI PERSEKOLAHAN SEBELUMNYA -->
+      <!-- JADUAL 2: SENARAI KETIDAKHADIRAN SEMALAM -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 bg-amber-50/40 flex flex-wrap justify-between items-center gap-3">
           <div class="flex items-center gap-2">
@@ -558,18 +553,61 @@
 
       <div id="adminPanelBox" class="hidden space-y-6">
 
-        <!-- BAHAGIAN 1: PENGURUSAN TAKWIM CUTI PERSEKOLAHAN -->
+        <!-- BAHAGIAN 1: PENGURUSAN MURID MANUAL (TAMBAH & PADAM MENGIKUT KELAS) -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
-          <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-4">
+          <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-100 pb-3">
             <div>
               <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-plus text-indigo-600"></i> Pengurusan Takwim Cuti Sekolah (Pukal & Cuti Semester)
+                <i class="fa-solid fa-user-pen text-blue-700"></i> Pengurusan Murid Manual (Tambah & Buang Murid)
               </h3>
-              <p class="text-xs text-slate-500">Daftarkan cuti umum sehari atau cuti penggal/semester panjang berminggu-minggu dengan menetapkan tarikh mula dan akhir.</p>
+              <p class="text-xs text-slate-500">Tambah murid baharu atau padam murid yang berpindah terus mengikut kelas tanpa perlu memuat naik fail Excel APDM.</p>
             </div>
             <button onclick="adminLogout()" class="text-xs text-rose-600 font-bold hover:underline">
               <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Log Keluar Admin
             </button>
+          </div>
+
+          <!-- Borang Tambah Murid Manual -->
+          <div class="bg-slate-50/80 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Pilih Kelas</label>
+                <select id="adminManualClassSelect" onchange="renderAdminManualStudentList()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-600">
+                </select>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nama Penuh Murid Baharu</label>
+                <div class="flex gap-2">
+                  <input type="text" id="adminNewStudentName" placeholder="Masukkan nama penuh murid baharu..." class="flex-1 bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-blue-600 uppercase">
+                  <button onclick="adminAddStudentManual()" id="btnAddStudentManual" class="bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs px-5 py-2 rounded-xl transition shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-user-plus"></i> Tambah Murid
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Senarai Murid Semasa Dalam Kelas Terpilih -->
+          <div class="space-y-3 pt-1">
+            <div class="flex justify-between items-center">
+              <h4 class="font-bold text-xs uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-users text-slate-500"></i> Senarai Murid Semasa: <span id="adminManualClassLabel" class="text-blue-900 font-extrabold">-</span>
+              </h4>
+              <span id="adminManualClassCountBadge" class="text-xs bg-blue-100 text-blue-800 font-extrabold px-2.5 py-0.5 rounded-full">0 Murid</span>
+            </div>
+            <div id="adminManualStudentsContainer" class="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
+              <!-- Senarai murid dengan butang padam dijana secara dinamik -->
+            </div>
+          </div>
+        </div>
+
+        <!-- BAHAGIAN 2: PENGURUSAN TAKWIM CUTI PERSEKOLAHAN -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+          <div class="border-b border-slate-100 pb-3">
+            <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-calendar-plus text-indigo-600"></i> Pengurusan Takwim Cuti Sekolah (Pukal & Cuti Semester)
+            </h3>
+            <p class="text-xs text-slate-500">Daftarkan cuti umum sehari atau cuti penggal/semester panjang berminggu-minggu dengan menetapkan tarikh mula dan akhir.</p>
           </div>
 
           <!-- BORANG TAMBAH CUTI PUKAL -->
@@ -595,13 +633,11 @@
                 <input type="text" id="inputHolidayName" placeholder="Cth: Cuti Penggal 1 / Hari Raya" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-600">
               </div>
 
-              <!-- Input Cuti Sehari -->
               <div id="wrapperSingleDate">
                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tarikh Cuti</label>
                 <input type="date" id="inputHolidaySingleDate" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-600">
               </div>
 
-              <!-- Input Julat Tarikh Mula & Akhir (Cuti Semester/Penggal) -->
               <div id="wrapperRangeStart" class="hidden">
                 <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tarikh Mula Cuti</label>
                 <input type="date" id="inputHolidayStartDate" onchange="calcHolidayDuration()" class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-600">
@@ -629,13 +665,13 @@
             <h4 class="font-bold text-xs uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
               <i class="fa-solid fa-list-check text-slate-600"></i> Senarai Cuti Yang Telah Didaftarkan:
             </h4>
-            <div id="holidaysListContainer" class="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-[280px] overflow-y-auto">
+            <div id="holidaysListContainer" class="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-[250px] overflow-y-auto">
               <div class="p-4 text-center text-xs text-slate-400 italic">Tiada cuti pukal didaftarkan lagi.</div>
             </div>
           </div>
         </div>
 
-        <!-- BAHAGIAN 2: UPLOAD FAIL EXCEL APDM TERKINI -->
+        <!-- BAHAGIAN 3: UPLOAD FAIL EXCEL APDM TERKINI -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
           <div class="border-b border-slate-100 pb-3">
             <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
@@ -692,7 +728,7 @@
           </div>
         </div>
 
-        <!-- BAHAGIAN 3: SENARAI MURID TERGANTUNG / DIARKIBKAN -->
+        <!-- BAHAGIAN 4: SENARAI MURID TERGANTUNG / DIARKIBKAN -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
           <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
             <i class="fa-solid fa-users-slash text-slate-500"></i> Senarai Murid Terapung Sedia Ada (Pangkalan Data)
@@ -736,10 +772,9 @@
     
     let HOLIDAYS_DATA = [];
 
-    // Pembolehubah Penapis & Susunan Bagi Jadual Rumusan Murid Tidak Hadir
     let currentRumusanAbsences = [];
-    let currentSortColumn = 'kelas'; // 'kelas', 'nama', 'sebab', 'tarikh'
-    let currentSortOrder = 'asc';    // 'asc', 'desc'
+    let currentSortColumn = 'kelas';
+    let currentSortOrder = 'asc';
 
     let lastStudentDbDate = localStorage.getItem('smkka_last_db_date') || '';
     let sessionAdminPassword = '';
@@ -1051,12 +1086,11 @@
         select.value = "";
       }
 
-      // Selaraskan juga dropdown penapis kelas pada tab Rumusan
       populateRumusanClassFilter();
+      populateAdminManualClassSelect();
       renderStudentList();
     }
 
-    // Isikan pilihan kelas dalam dropdown penapis Rumusan
     function populateRumusanClassFilter() {
       const filterSelect = document.getElementById('filterAbsentClassSelect');
       if (!filterSelect) return;
@@ -1089,11 +1123,13 @@
       if (pageId === 'admin') {
         renderFloatingContainer();
         renderHolidaysListUI();
+        populateAdminManualClassSelect();
+        renderAdminManualStudentList();
       }
     }
 
     // =========================================================================
-    // PAPARAN SENARAI MURID PELAPORAN
+    // SENARAI MURID PELAPORAN
     // =========================================================================
     function renderStudentList() {
       const cls = document.getElementById('selectKelas').value;
@@ -1230,6 +1266,9 @@
       renderStudentList();
     }
 
+    // =========================================================================
+    // SIMPAN KEHADIRAN
+    // =========================================================================
     async function saveAttendance() {
       const btn = document.getElementById('btnSave');
       const cls = document.getElementById('selectKelas').value;
@@ -1660,7 +1699,6 @@
       const selectedClass = document.getElementById('filterAbsentClassSelect') ? document.getElementById('filterAbsentClassSelect').value : 'all';
       const selectedReason = document.getElementById('filterAbsentReasonSelect') ? document.getElementById('filterAbsentReasonSelect').value : 'all';
 
-      // 1. Tapis mengikut Kelas & Sebab
       let displayList = currentRumusanAbsences.filter(item => {
         if (selectedClass !== 'all' && item.kelas !== selectedClass) {
           return false;
@@ -1675,7 +1713,6 @@
         return true;
       });
 
-      // 2. Susun (Sorting)
       displayList.sort((a, b) => {
         let comp = 0;
         if (currentSortColumn === 'tarikh') {
@@ -1690,7 +1727,6 @@
         return (currentSortOrder === 'asc') ? comp : -comp;
       });
 
-      // Kemas kini Lencana Hasil Tapisan
       const badgeEl = document.getElementById('filterResultCountBadge');
       if (badgeEl) badgeEl.innerText = `${displayList.length} Murid`;
 
@@ -1928,11 +1964,9 @@
       const avgPct = totalEnrolSum > 0 ? ((totalHadirSum / totalEnrolSum) * 100).toFixed(1) : (filtered.length > 0 ? '100' : '0.0');
       document.getElementById('statAvgAttendance').innerText = `${avgPct}%`;
 
-      // Simpan data ke pembolehubah global & jalankan tapisan/susunan
       currentRumusanAbsences = studentAllAbsences;
       renderAbsentTableUI();
 
-      // Kekerapan Tidak Hadir
       const frequentListEl = document.getElementById('listFrequentAbsent');
       frequentListEl.innerHTML = '';
       const sortedAbsent = Object.entries(absentFreqMap).sort((a, b) => b[1] - a[1]);
@@ -1958,7 +1992,6 @@
         });
       }
 
-      // Anugerah 100% Hadir
       const diligentListEl = document.getElementById('listDiligentStudents');
       diligentListEl.innerHTML = '';
       let diligentCount = 0;
@@ -1989,6 +2022,175 @@
 
       document.getElementById('statSuperDiligentCount').innerText = diligentCount;
       document.getElementById('countDiligent').innerText = `${diligentCount} Murid`;
+    }
+
+    // =========================================================================
+    // LOGIK ADMIN: PENGURUSAN MURID MANUAL (TAMBAH & PADAM MENGIKUT KELAS)
+    // =========================================================================
+    function populateAdminManualClassSelect() {
+      const select = document.getElementById('adminManualClassSelect');
+      if (!select) return;
+      const cur = select.value;
+      select.innerHTML = '';
+
+      const classList = Object.keys(STUDENTS_DATA);
+      classList.forEach(cls => {
+        const opt = document.createElement('option');
+        opt.value = cls;
+        opt.textContent = `Kelas ${cls} (${STUDENTS_DATA[cls].length} Murid)`;
+        select.appendChild(opt);
+      });
+
+      if (cur && STUDENTS_DATA[cur]) {
+        select.value = cur;
+      } else if (classList.length > 0) {
+        select.value = classList[0];
+      }
+      renderAdminManualStudentList();
+    }
+
+    function renderAdminManualStudentList() {
+      const select = document.getElementById('adminManualClassSelect');
+      const container = document.getElementById('adminManualStudentsContainer');
+      const labelEl = document.getElementById('adminManualClassLabel');
+      const badgeEl = document.getElementById('adminManualClassCountBadge');
+
+      if (!select || !container) return;
+      const cls = select.value;
+      const list = STUDENTS_DATA[cls] || [];
+
+      if (labelEl) labelEl.innerText = cls ? `Kelas ${cls}` : "-";
+      if (badgeEl) badgeEl.innerText = `${list.length} Murid`;
+
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 italic">Tiada murid berdaftar dalam kelas ${cls}. Sila tambah murid menggunakan borang di atas.</div>`;
+        return;
+      }
+
+      list.forEach((name, idx) => {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between p-3.5 hover:bg-slate-50 transition";
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 font-black text-xs flex items-center justify-center flex-shrink-0">${idx + 1}</span>
+            <span class="text-xs font-bold text-slate-800">${name}</span>
+          </div>
+          <button onclick="adminDeleteStudentManual('${name.replace(/'/g, "\\'")}', '${cls}')" class="text-xs text-rose-600 hover:text-rose-800 font-bold px-2.5 py-1 rounded-lg hover:bg-rose-50 transition flex items-center gap-1">
+            <i class="fa-solid fa-trash text-[11px]"></i> Padam
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function adminAddStudentManual() {
+      const cls = document.getElementById('adminManualClassSelect').value;
+      const nameInput = document.getElementById('adminNewStudentName');
+      const btn = document.getElementById('btnAddStudentManual');
+      const name = nameInput.value.trim().toUpperCase();
+
+      if (!cls) {
+        alert("Sila pilih kelas terlebih dahulu.");
+        return;
+      }
+      if (!name) {
+        alert("Sila masukkan nama penuh murid.");
+        nameInput.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menambah...`;
+
+      try {
+        const payload = {
+          action: "addStudent",
+          password: sessionAdminPassword,
+          nama: name,
+          kelas: cls
+        };
+
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const resData = await res.json();
+
+        if (resData.status === "success") {
+          if (!STUDENTS_DATA[cls]) STUDENTS_DATA[cls] = [];
+          if (!STUDENTS_DATA[cls].includes(name)) {
+            STUDENTS_DATA[cls].push(name);
+          }
+          localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
+
+          const todayStr = getActualTodayISO();
+          lastStudentDbDate = todayStr;
+          localStorage.setItem('smkka_last_db_date', todayStr);
+          updateRumusanDbDateDisplay();
+
+          nameInput.value = '';
+          populateClassSelect();
+          populateAdminManualClassSelect();
+          renderAdminManualStudentList();
+
+          alert(resData.message || `Murid ${name} berjaya ditambah ke kelas ${cls}!`);
+        } else {
+          alert("Gagal menambah murid: " + resData.message);
+        }
+      } catch (err) {
+        alert("Ralat sambungan: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-user-plus"></i> Tambah Murid`;
+      }
+    }
+
+    async function adminDeleteStudentManual(nama, kelas) {
+      if (!confirm(`Adakah anda pasti mahu memadam murid ${nama} dari kelas ${kelas}? Murid ini akan dipindahkan ke arkib sekolah.`)) {
+        return;
+      }
+
+      try {
+        const payload = {
+          action: "purgeStudent",
+          password: sessionAdminPassword,
+          nama: nama,
+          kelas: kelas
+        };
+
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const resData = await res.json();
+
+        if (resData.status === "success") {
+          if (STUDENTS_DATA[kelas]) {
+            STUDENTS_DATA[kelas] = STUDENTS_DATA[kelas].filter(n => n !== nama);
+            localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
+          }
+
+          const todayStr = getActualTodayISO();
+          lastStudentDbDate = todayStr;
+          localStorage.setItem('smkka_last_db_date', todayStr);
+          updateRumusanDbDateDisplay();
+
+          populateClassSelect();
+          populateAdminManualClassSelect();
+          renderAdminManualStudentList();
+          renderFloatingContainer();
+
+          alert(resData.message || `Murid ${nama} telah dipadam daripada senarai kelas ${kelas}.`);
+        } else {
+          alert("Gagal memadam murid: " + resData.message);
+        }
+      } catch (err) {
+        alert("Ralat memadam murid: " + err.message);
+      }
     }
 
     // =========================================================================
@@ -2190,7 +2392,7 @@
             <div>
               <p class="text-xs font-bold text-slate-800">${h.nama}</p>
               <p class="text-[11px] text-slate-500 font-medium">
-                ${h.mula === h.akhir ? h.mula : `${h.mula} hingga ${h.akhir}`} 
+                ${h.mula === h.akhir ? h.mula : `${h.mula} hingga${h.akhir}`} 
                 <span class="font-bold text-indigo-700">(${h.bilHari} Hari)</span>
               </p>
             </div>
@@ -2241,6 +2443,7 @@
           inputEl.value = '';
           renderFloatingContainer();
           renderHolidaysListUI();
+          populateAdminManualClassSelect();
         } else {
           alert("Kata laluan tidak sah! Sila cuba lagi.");
           inputEl.value = '';
@@ -2487,39 +2690,6 @@
           <span class="text-slate-500 italic">Pangkalan Data Google Sheets disegerakkan.</span>
         </div>
       `;
-    }
-
-    async function purgeStudentDirectly(nama, kelas) {
-      if (!confirm(`Adakah anda pasti mahu menghapuskan murid ${nama} dari kelas ${kelas}? Rekod kehadiran lalu murid ini tidak akan hilang dari arkib.`)) {
-        return;
-      }
-
-      const payload = {
-        action: "purgeStudent",
-        password: sessionAdminPassword,
-        nama: nama,
-        kelas: kelas
-      };
-
-      try {
-        await fetch(GAS_API_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (STUDENTS_DATA[kelas]) {
-          STUDENTS_DATA[kelas] = STUDENTS_DATA[kelas].filter(n => n !== nama);
-          localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
-          populateClassSelect();
-        }
-
-        alert(`Murid ${nama} telah dipadam daripada senarai kelas ${kelas}.`);
-        renderFloatingContainer();
-      } catch (e) {
-        alert("Ralat memadam murid: " + e.message);
-      }
     }
   </script>
 </body>
