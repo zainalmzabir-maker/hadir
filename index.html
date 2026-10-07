@@ -130,6 +130,7 @@
               <input type="date" id="inputTarikh" onchange="onTarikhChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
             </div>
 
+            <!-- RUANG STATUS HARI PERSEKOLAHAN -->
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Status Hari Persekolahan</label>
               <select id="selectStatusHari" onchange="onStatusHariChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
@@ -139,6 +140,7 @@
               </select>
             </div>
 
+            <!-- PILIHAN KELAS DENGAN PILIHAN DEFAULT KOSONG -->
             <div>
               <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Pilih Kelas</label>
               <select id="selectKelas" onchange="renderStudentList()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-blue-600 outline-none">
@@ -165,7 +167,7 @@
           <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
             <div class="bg-slate-100/80 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
               <span class="text-xs font-extrabold uppercase tracking-wider text-slate-600">Senarai Murid Dalam Kelas</span>
-              <span class="text-xs text-slate-500 font-medium italic">*Klik kotak jika murid tidak hadir</span>
+              <span class="text-xs text-slate-500 font-medium italic">*Disusun mengikut turutan abjad (A &rarr; Z)</span>
             </div>
 
             <div class="max-h-[420px] overflow-y-auto divide-y divide-slate-100 transition-opacity" id="studentContainer">
@@ -500,7 +502,7 @@
         </div>
       </div>
 
-      <!-- JADUAL 2: SENARAI KETIDAKHADIRAN SEMALAM -->
+      <!-- JADUAL 2: SENARAI KETIDAKHADIRAN SEMALAM / HARI PERSEKOLAHAN SEBELUMNYA -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 bg-amber-50/40 flex flex-wrap justify-between items-center gap-3">
           <div class="flex items-center gap-2">
@@ -560,7 +562,7 @@
               <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
                 <i class="fa-solid fa-user-pen text-blue-700"></i> Pengurusan Murid Manual (Tambah & Buang Murid)
               </h3>
-              <p class="text-xs text-slate-500">Tambah murid baharu atau padam murid yang berpindah terus mengikut kelas tanpa perlu memuat naik fail Excel APDM.</p>
+              <p class="text-xs text-slate-500">Tambah murid baharu atau padam murid yang berpindah terus mengikut kelas tanpa perlu memuat naik fail Excel APDM. Nama murid akan disusun mengikut abjad (A-Z) secara automatik.</p>
             </div>
             <button onclick="adminLogout()" class="text-xs text-rose-600 font-bold hover:underline">
               <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Log Keluar Admin
@@ -591,12 +593,11 @@
           <div class="space-y-3 pt-1">
             <div class="flex justify-between items-center">
               <h4 class="font-bold text-xs uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
-                <i class="fa-solid fa-users text-slate-500"></i> Senarai Murid Semasa: <span id="adminManualClassLabel" class="text-blue-900 font-extrabold">-</span>
+                <i class="fa-solid fa-users text-slate-500"></i> Senarai Murid Semasa (Tersusun Abjad): <span id="adminManualClassLabel" class="text-blue-900 font-extrabold">-</span>
               </h4>
               <span id="adminManualClassCountBadge" class="text-xs bg-blue-100 text-blue-800 font-extrabold px-2.5 py-0.5 rounded-full">0 Murid</span>
             </div>
             <div id="adminManualStudentsContainer" class="border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
-              <!-- Senarai murid dengan butang padam dijana secara dinamik -->
             </div>
           </div>
         </div>
@@ -785,11 +786,22 @@
       initClock();
       initDefaultDate();
       loadCachedAttendance();
+      sortAllClassesAlphabetically();
       loadLocalOrRemoteStudents();
       loadCachedHolidays();
       updateRumusanDbDateDisplay();
       loadRemoteData();
     };
+
+    // Fungsi pembantu menyusun semua kelas mengikut abjad (A-Z)
+    function sortAllClassesAlphabetically() {
+      if (!STUDENTS_DATA) return;
+      Object.keys(STUDENTS_DATA).forEach(cls => {
+        if (Array.isArray(STUDENTS_DATA[cls])) {
+          STUDENTS_DATA[cls].sort((a, b) => a.localeCompare(b, 'ms'));
+        }
+      });
+    }
 
     function initClock() {
       setInterval(() => {
@@ -1062,7 +1074,10 @@
     function loadLocalOrRemoteStudents() {
       const cached = localStorage.getItem('smkka_students_cache');
       if (cached) {
-        try { STUDENTS_DATA = JSON.parse(cached); } catch(e) {}
+        try {
+          STUDENTS_DATA = JSON.parse(cached);
+          sortAllClassesAlphabetically();
+        } catch (e) {}
       }
       populateClassSelect();
       updateRumusanDbDateDisplay();
@@ -1167,6 +1182,8 @@
         btnSaveEl.classList.remove('opacity-50', 'cursor-not-allowed');
       }
 
+      // Pastikan senarai murid kelas ini tersusun A-Z
+      STUDENTS_DATA[cls].sort((a, b) => a.localeCompare(b, 'ms'));
       const list = STUDENTS_DATA[cls] || [];
       container.innerHTML = '';
       document.getElementById('badgeEnrolmen').innerText = list.length;
@@ -1266,9 +1283,6 @@
       renderStudentList();
     }
 
-    // =========================================================================
-    // SIMPAN KEHADIRAN
-    // =========================================================================
     async function saveAttendance() {
       const btn = document.getElementById('btnSave');
       const cls = document.getElementById('selectKelas').value;
@@ -1368,6 +1382,7 @@
 
         if (data.students && Object.keys(data.students).length > 0) {
           STUDENTS_DATA = data.students;
+          sortAllClassesAlphabetically();
           localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
           populateClassSelect();
         }
@@ -2025,7 +2040,7 @@
     }
 
     // =========================================================================
-    // LOGIK ADMIN: PENGURUSAN MURID MANUAL (TAMBAH & PADAM MENGIKUT KELAS)
+    // LOGIK ADMIN: PENGURUSAN MURID MANUAL (DILENGKAPI SUSUNAN ABJAD A-Z)
     // =========================================================================
     function populateAdminManualClassSelect() {
       const select = document.getElementById('adminManualClassSelect');
@@ -2057,6 +2072,11 @@
 
       if (!select || !container) return;
       const cls = select.value;
+
+      // Pastikan senarai murid sentiasa tersusun mengikut abjad (A-Z)
+      if (cls && STUDENTS_DATA[cls]) {
+        STUDENTS_DATA[cls].sort((a, b) => a.localeCompare(b, 'ms'));
+      }
       const list = STUDENTS_DATA[cls] || [];
 
       if (labelEl) labelEl.innerText = cls ? `Kelas ${cls}` : "-";
@@ -2124,6 +2144,15 @@
           if (!STUDENTS_DATA[cls].includes(name)) {
             STUDENTS_DATA[cls].push(name);
           }
+
+          // Susun abjad A-Z serta-merta
+          STUDENTS_DATA[cls].sort((a, b) => a.localeCompare(b, 'ms'));
+
+          if (resData.students) {
+            STUDENTS_DATA = resData.students;
+            sortAllClassesAlphabetically();
+          }
+
           localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
 
           const todayStr = getActualTodayISO();
@@ -2135,8 +2164,11 @@
           populateClassSelect();
           populateAdminManualClassSelect();
           renderAdminManualStudentList();
+          renderStudentList();
+          renderDashboard();
+          renderRumusan();
 
-          alert(resData.message || `Murid ${name} berjaya ditambah ke kelas ${cls}!`);
+          alert(resData.message || `Murid ${name} berjaya ditambah dan disusun mengikut abjad dalam kelas ${cls}!`);
         } else {
           alert("Gagal menambah murid: " + resData.message);
         }
@@ -2171,8 +2203,15 @@
         if (resData.status === "success") {
           if (STUDENTS_DATA[kelas]) {
             STUDENTS_DATA[kelas] = STUDENTS_DATA[kelas].filter(n => n !== nama);
-            localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
+            STUDENTS_DATA[kelas].sort((a, b) => a.localeCompare(b, 'ms'));
           }
+
+          if (resData.students) {
+            STUDENTS_DATA = resData.students;
+            sortAllClassesAlphabetically();
+          }
+
+          localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
 
           const todayStr = getActualTodayISO();
           lastStudentDbDate = todayStr;
@@ -2182,6 +2221,9 @@
           populateClassSelect();
           populateAdminManualClassSelect();
           renderAdminManualStudentList();
+          renderStudentList();
+          renderDashboard();
+          renderRumusan();
           renderFloatingContainer();
 
           alert(resData.message || `Murid ${nama} telah dipadam daripada senarai kelas ${kelas}.`);
@@ -2507,6 +2549,7 @@
             }
 
             if (studentList.length > 0 && !sheetName.includes("SEMUA") && !sheetName.includes("JUMLAH") && !sheetName.includes("GURU") && !sheetName.includes("AGAMA")) {
+              studentList.sort((a, b) => a.localeCompare(b, 'ms'));
               newStudentsData[sheetName.trim()] = studentList;
               totalExtracted += studentList.length;
             }
@@ -2636,6 +2679,13 @@
         }
       });
 
+      // Susun A-Z setiap kelas
+      Object.keys(finalStudentsData).forEach(cls => {
+        if (Array.isArray(finalStudentsData[cls])) {
+          finalStudentsData[cls].sort((a, b) => a.localeCompare(b, 'ms'));
+        }
+      });
+
       const todayStr = getActualTodayISO();
 
       const payload = {
@@ -2654,6 +2704,7 @@
         });
 
         STUDENTS_DATA = finalStudentsData;
+        sortAllClassesAlphabetically();
         localStorage.setItem('smkka_students_cache', JSON.stringify(STUDENTS_DATA));
 
         lastStudentDbDate = todayStr;
