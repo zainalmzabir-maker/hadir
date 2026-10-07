@@ -383,6 +383,7 @@
             <p class="text-[11px] text-indigo-600 mt-0.5" id="statSchoolDaysSubtext">Sela Masa Terpilih</p>
           </div>
 
+          <!-- KAD TIDAK HADIR SEMALAM / HARI PERSEKOLAHAN SEBELUMNYA -->
           <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
             <p class="text-xs font-bold text-amber-700" id="statYesterdayTitle">Tidak Hadir Semalam</p>
             <p class="text-3xl font-black text-amber-800 mt-1" id="statYesterdayAbsent">0</p>
@@ -1633,7 +1634,7 @@
           waTextareaEl.value = `✅ *STATUS E-KEHADIRAN SMKKA*\nTarikh: ${actualToday}\n\nAlhamdulillah, semua kelas (${classes.length} kelas) telah selesai melengkapkan kehadiran hari ini.\n\nTerima kasih atas kerjasama dan komitmen semua guru! 👏`;
         } else {
           const listStr = pendingTodayClasses.map((c, i) => `${i + 1}. Kelas ${c}`).join('\n');
-          waTextareaEl.value = `📢 *PERINGATAN PENGISIAN E-KEHADIRAN SMKKA*\nTarikh: ${actualToday}\n\nAssalamualaikum & salam sejahtera cikgu.\n\nMohon perhatian guru kelas/pembantu bagi kelas berikut untuk melengkapkan pengisian kehadiran hari ini:\n\n${listStr}\n\n*Jumlah kelas belum selesai:* ${pendingTodayClasses.length} / ${classes.length} kelas\n\n🔗 *Pautan Sistem:* https://hadir.semekar.com/\n\nKerjasama cikgu amat dihargai. Terima kasih! 🙏`;
+          waTextareaEl.value = `📢 *PERINGATAN PENGISIAN E-KEHADIRAN SMKKA*\nTarikh: ${actualToday}\n\nAssalamualaikum & salam sejahtera cikgu.\n\nMohon perhatian guru waktu semasa/kelas/pembantu bagi kelas berikut untuk melengkapkan pengisian kehadiran hari ini:\n\n${listStr}\n\n*Jumlah kelas belum selesai:* ${pendingTodayClasses.length} / ${classes.length} kelas\n\n🔗 *Pautan Sistem:* https://hadir.semekar.com/\n\nKerjasama cikgu amat dihargai. Terima kasih! 🙏`;
         }
       }
 
