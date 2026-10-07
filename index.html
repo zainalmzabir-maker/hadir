@@ -229,6 +229,8 @@
 
       <!-- 2 KAD: KELAS BELUM LENGKAP HARI INI & SEMALAM -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+        <!-- KAD 1: KELAS BELUM LENGKAP HARI INI (DENGAN KOTAK AYAT AUTO-SALIN WHATSAPP) -->
         <div class="bg-white rounded-2xl border border-rose-200 shadow-sm overflow-hidden flex flex-col">
           <div class="px-5 py-3.5 border-b border-rose-100 bg-rose-50/60 flex items-center justify-between gap-3">
             <div class="flex items-center gap-2">
@@ -242,10 +244,28 @@
             </div>
             <span id="dashPendingTodayBadge" class="text-xs bg-rose-100 text-rose-800 font-extrabold px-2.5 py-0.5 rounded-full">0 Kelas</span>
           </div>
-          <div class="p-4 flex-1" id="dashPendingTodayList">
+
+          <div class="p-4 space-y-4 flex-1 flex flex-col justify-between">
+            <!-- Senarai Cip Butang Kelas Belum Lengkap -->
+            <div id="dashPendingTodayList" class="min-h-[48px]">
+            </div>
+
+            <!-- KOTAK AYAT AUTOMATIK WHATSAPP & BUTANG SALIN -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i> Ayat Peringatan WhatsApp (Auto):
+                </span>
+                <button onclick="copyWaPendingMessage()" id="btnCopyWa" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg transition shadow-xs flex items-center gap-1.5">
+                  <i class="fa-regular fa-copy"></i> Salin Ayat
+                </button>
+              </div>
+              <textarea id="waPendingTodayText" readonly rows="5" class="w-full bg-white border border-slate-200 rounded-lg p-2.5 text-[11px] font-mono text-slate-700 leading-relaxed outline-none resize-none select-all" placeholder="Ayat WhatsApp dijana secara automatik..."></textarea>
+            </div>
           </div>
         </div>
 
+        <!-- KAD 2: KELAS BELUM LENGKAP SEMALAM -->
         <div class="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden flex flex-col">
           <div class="px-5 py-3.5 border-b border-amber-100 bg-amber-50/60 flex items-center justify-between gap-3">
             <div class="flex items-center gap-2">
@@ -793,7 +813,6 @@
       loadRemoteData();
     };
 
-    // Fungsi pembantu menyusun semua kelas mengikut abjad (A-Z)
     function sortAllClassesAlphabetically() {
       if (!STUDENTS_DATA) return;
       Object.keys(STUDENTS_DATA).forEach(cls => {
@@ -1144,7 +1163,7 @@
     }
 
     // =========================================================================
-    // SENARAI MURID PELAPORAN
+    // PAPARAN SENARAI MURID PELAPORAN
     // =========================================================================
     function renderStudentList() {
       const cls = document.getElementById('selectKelas').value;
@@ -1182,7 +1201,6 @@
         btnSaveEl.classList.remove('opacity-50', 'cursor-not-allowed');
       }
 
-      // Pastikan senarai murid kelas ini tersusun A-Z
       STUDENTS_DATA[cls].sort((a, b) => a.localeCompare(b, 'ms'));
       const list = STUDENTS_DATA[cls] || [];
       container.innerHTML = '';
@@ -1283,6 +1301,9 @@
       renderStudentList();
     }
 
+    // =========================================================================
+    // SIMPAN KEHADIRAN
+    // =========================================================================
     async function saveAttendance() {
       const btn = document.getElementById('btnSave');
       const cls = document.getElementById('selectKelas').value;
@@ -1399,6 +1420,33 @@
       } catch (e) {
         console.warn("Gagal menghubungi Google Apps Script API:", e);
       }
+    }
+
+    // =========================================================================
+    // FUNGSI SALIN TEKS WHATSAPP
+    // =========================================================================
+    function copyWaPendingMessage() {
+      const txt = document.getElementById('waPendingTodayText');
+      if (!txt || !txt.value) return;
+
+      navigator.clipboard.writeText(txt.value).then(() => {
+        const btn = document.getElementById('btnCopyWa');
+        if (btn) {
+          const originalHTML = btn.innerHTML;
+          btn.innerHTML = `<i class="fa-solid fa-check text-white"></i> Berjaya Disalin!`;
+          btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+          btn.classList.add('bg-emerald-800');
+          setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.classList.remove('bg-emerald-800');
+            btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+          }, 2000);
+        }
+      }).catch(() => {
+        txt.select();
+        document.execCommand('copy');
+        alert("Ayat WhatsApp berjaya disalin!");
+      });
     }
 
     // =========================================================================
@@ -1545,6 +1593,7 @@
         }
       });
 
+      // Kemas kini Kad Belum Lengkap Hari Ini
       const pendingTodayDateEl = document.getElementById('dashPendingTodayDate');
       if (pendingTodayDateEl) pendingTodayDateEl.innerText = actualToday;
       
@@ -1577,6 +1626,18 @@
         }
       }
 
+      // JANA AYAT PERINGATAN WHATSAPP SECARA AUTOMATIK
+      const waTextareaEl = document.getElementById('waPendingTodayText');
+      if (waTextareaEl) {
+        if (pendingTodayClasses.length === 0) {
+          waTextareaEl.value = `✅ *STATUS E-KEHADIRAN SMKKA*\nTarikh: ${actualToday}\n\nAlhamdulillah, semua kelas (${classes.length} kelas) telah selesai melengkapkan kehadiran hari ini.\n\nTerima kasih atas kerjasama dan komitmen semua guru! 👏`;
+        } else {
+          const listStr = pendingTodayClasses.map((c, i) => `${i + 1}. Kelas ${c}`).join('\n');
+          waTextareaEl.value = `📢 *PERINGATAN PENGISIAN E-KEHADIRAN SMKKA*\nTarikh: ${actualToday}\n\nAssalamualaikum & salam sejahtera cikgu.\n\nMohon perhatian guru kelas/pembantu bagi kelas berikut untuk melengkapkan pengisian kehadiran hari ini:\n\n${listStr}\n\n*Jumlah kelas belum selesai:* ${pendingTodayClasses.length} / ${classes.length} kelas\n\n🔗 *Pautan Sistem:* https://hadir.semekar.com/\n\nKerjasama cikgu amat dihargai. Terima kasih! 🙏`;
+        }
+      }
+
+      // Kemas kini Kad Belum Lengkap Semalam
       const pendingYestDateEl = document.getElementById('dashPendingYesterdayDate');
       if (pendingYestDateEl) pendingYestDateEl.innerText = targetYesterdayStr;
       
@@ -2073,7 +2134,6 @@
       if (!select || !container) return;
       const cls = select.value;
 
-      // Pastikan senarai murid sentiasa tersusun mengikut abjad (A-Z)
       if (cls && STUDENTS_DATA[cls]) {
         STUDENTS_DATA[cls].sort((a, b) => a.localeCompare(b, 'ms'));
       }
@@ -2145,7 +2205,6 @@
             STUDENTS_DATA[cls].push(name);
           }
 
-          // Susun abjad A-Z serta-merta
           STUDENTS_DATA[cls].sort((a, b) => a.localeCompare(b, 'ms'));
 
           if (resData.students) {
@@ -2679,7 +2738,6 @@
         }
       });
 
-      // Susun A-Z setiap kelas
       Object.keys(finalStudentsData).forEach(cls => {
         if (Array.isArray(finalStudentsData[cls])) {
           finalStudentsData[cls].sort((a, b) => a.localeCompare(b, 'ms'));
